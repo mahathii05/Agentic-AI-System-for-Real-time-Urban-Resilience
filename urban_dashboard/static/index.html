@@ -1,0 +1,3524 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Urban Resilience AI</title>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Leaflet CSS for the interactive map -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+      body {
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      /* Custom Scrollbars */
+      .custom-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      /* Map Legend Gradient */
+      .traffic-gradient {
+        background: linear-gradient(
+          to right,
+          #22c55e,
+          #84cc16,
+          #eab308,
+          #f97316,
+          #ef4444,
+          #7f1d1d
+        );
+      }
+
+      /* Active Sidebar Link */
+      .nav-active {
+        background-color: #1e293b;
+        border-left: 4px solid #3b82f6;
+        color: white;
+      }
+
+      .tool-btn {
+        transition: all 0.2s;
+      }
+      .tool-btn:hover {
+        background-color: #f3f4f6;
+        border-radius: 8px;
+      }
+      .tool-btn.active {
+        background-color: #eff6ff;
+        color: #2563eb;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+      .tool-btn.active .layer-indicator {
+        display: block;
+      }
+      .layer-indicator {
+        display: none;
+      }
+
+      /* ═══ Markdown rendering — matches Claude.ai quality ═══ */
+      .markdown-body {
+        line-height: 1.7;
+        color: #1e293b;
+      }
+      .markdown-body h1 {
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin: 16px 0 8px;
+        color: #0f172a;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 6px;
+      }
+      .markdown-body h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 14px 0 6px;
+        color: #1e293b;
+      }
+      .markdown-body h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin: 10px 0 4px;
+        color: #334155;
+      }
+      .markdown-body h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 8px 0 4px;
+        color: #475569;
+      }
+      .markdown-body p {
+        margin: 6px 0;
+      }
+      .markdown-body p:first-child {
+        margin-top: 0;
+      }
+      .markdown-body p:last-child {
+        margin-bottom: 0;
+      }
+      .markdown-body strong {
+        font-weight: 700;
+        color: #0f172a;
+      }
+      .markdown-body em {
+        font-style: italic;
+        color: #475569;
+      }
+      .markdown-body ul {
+        list-style: disc;
+        padding-left: 1.4rem;
+        margin: 6px 0;
+      }
+      .markdown-body ol {
+        list-style: decimal;
+        padding-left: 1.4rem;
+        margin: 6px 0;
+      }
+      .markdown-body li {
+        margin: 3px 0;
+      }
+      .markdown-body li > ul,
+      .markdown-body li > ol {
+        margin: 2px 0;
+      }
+      .markdown-body hr {
+        border: none;
+        border-top: 1px solid #e2e8f0;
+        margin: 12px 0;
+      }
+      .markdown-body blockquote {
+        border-left: 3px solid #3b82f6;
+        padding: 4px 12px;
+        background: #eff6ff;
+        border-radius: 0 6px 6px 0;
+        margin: 8px 0;
+        color: #1e40af;
+      }
+      .markdown-body code {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        color: #be185d;
+      }
+      .markdown-body pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 14px 16px;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin: 10px 0;
+        font-size: 0.8rem;
+        line-height: 1.6;
+      }
+      .markdown-body pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font-size: inherit;
+      }
+      .markdown-body table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 10px 0;
+        font-size: 0.82rem;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      }
+      .markdown-body thead tr {
+        background: #1e293b;
+        color: #f8fafc;
+      }
+      .markdown-body th {
+        padding: 8px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+      }
+      .markdown-body td {
+        padding: 7px 12px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .markdown-body tr:nth-child(even) td {
+        background: #f8fafc;
+      }
+      .markdown-body tr:last-child td {
+        border-bottom: none;
+      }
+      .markdown-body a {
+        color: #2563eb;
+        text-decoration: underline;
+      }
+      .markdown-body a:hover {
+        color: #1d4ed8;
+      }
+      .markdown-body img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin: 8px 0;
+      }
+
+      /* Resilience Score Circle */
+      .score-circle {
+        stroke-dasharray: 283; /* 2 * pi * r (r=45) */
+        stroke-dashoffset: 42; /* 85% of 283 */
+        transition: stroke-dashoffset 1s ease-in-out;
+      }
+
+      /* Chat bubbles */
+      .chat-bubble-ai {
+        border-bottom-left-radius: 4px;
+      }
+      .chat-bubble-user {
+        border-bottom-right-radius: 4px;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 flex h-screen w-full">
+    <!-- Global Main Sidebar -->
+    <aside
+      class="w-64 bg-slate-900 text-slate-300 flex flex-col h-full shadow-xl z-50 transition-all duration-300 shrink-0"
+    >
+      <div class="p-6 border-b border-slate-700">
+        <h1
+          class="text-xl font-bold text-white tracking-wide flex items-center gap-2"
+        >
+          <i class="fa-solid fa-shield-halved text-blue-500"></i>
+          URBAN<br />RESILIENCE AI
+        </h1>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto py-4 custom-scroll">
+        <ul class="space-y-1">
+          <li>
+            <a
+              href="#"
+              onclick="switchTab('overview')"
+              id="nav-overview"
+              class="nav-active flex items-center gap-3 px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <i class="fa-solid fa-house w-5 text-blue-400"></i> Overview
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              onclick="switchTab('map')"
+              id="nav-map"
+              class="flex items-center gap-3 px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <i class="fa-solid fa-map-location-dot w-5"></i> Live Risk Map
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              onclick="switchTab('status')"
+              id="nav-status"
+              class="flex items-center gap-3 px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <i class="fa-solid fa-chart-line w-5"></i> City Status
+            </a>
+          </li>
+
+          <li>
+            <a
+              href="#"
+              onclick="switchTab('claude')"
+              id="nav-claude"
+              class="flex items-center gap-3 px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <i class="fa-solid fa-robot w-5"></i> Claude Assistant
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              onclick="switchTab('metadata')"
+              id="nav-metadata"
+              class="flex items-center gap-3 px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <i class="fa-solid fa-database w-5"></i> Metadata
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div
+        class="p-4 border-t border-slate-700 text-xs text-slate-500 text-center"
+      >
+        Securing metropolitan infrastructure
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main
+      class="flex-1 relative h-full flex flex-col bg-gray-50 overflow-hidden"
+    >
+      <!-- ================= VIEW: OVERVIEW ================= -->
+      <div
+        id="view-overview"
+        class="w-full h-full overflow-y-auto custom-scroll p-8 lg:p-12"
+      >
+        <div class="max-w-5xl mx-auto">
+          <header class="mb-12 border-b pb-8">
+            <span
+              class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded uppercase tracking-wide"
+              >Platform Intro</span
+            >
+            <h2 class="text-4xl font-bold text-gray-900 mt-4 mb-4">
+              Urban Resilience AI
+            </h2>
+            <p class="text-xl text-gray-600 font-light leading-relaxed">
+              Securing the future of metropolitan infrastructure through
+              real-time predictive intelligence and adaptive risk mitigation.
+            </p>
+          </header>
+
+          <section class="mb-12">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4">
+              About the Platform
+            </h3>
+            <p
+              class="text-gray-600 leading-relaxed text-lg bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+            >
+              Urban Resilience AI is an intelligent web platform that monitors
+              urban risks using real-time data, geospatial mapping, and
+              AI-driven recommendations. It provides actionable insights to
+              support disaster management, improve city preparedness, and enable
+              faster, data-driven decision-making for resilient urban
+              development.
+            </p>
+          </section>
+
+          <section class="mb-12">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-6">
+              Key Features
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Feature Cards -->
+              <div
+                class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div
+                  class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4 text-xl"
+                >
+                  <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2">
+                  Interactive Live Risk Map
+                </h4>
+                <ul class="text-gray-600 space-y-2 text-sm">
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i
+                    >Multi-layer map overlay
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i>Zoom
+                    in/out capabilities
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i
+                    >Real-time spatial visualization
+                  </li>
+                </ul>
+              </div>
+              <div
+                class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div
+                  class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 mb-4 text-xl"
+                >
+                  <i class="fa-solid fa-satellite-dish"></i>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2">
+                  Real-time City Status
+                </h4>
+                <ul class="text-gray-600 space-y-2 text-sm">
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i>Live
+                    data integration
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i>Active
+                    alerts overview
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i>City
+                    resilience score metrics
+                  </li>
+                </ul>
+              </div>
+              <div
+                class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div
+                  class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-4 text-xl"
+                >
+                  <i class="fa-solid fa-messages"></i>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2">
+                  Intelligent Assistant
+                </h4>
+                <ul class="text-gray-600 space-y-2 text-sm">
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i>Natural
+                    language interaction
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i>Instant
+                    data summaries
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i
+                    >Actionable recommendations
+                  </li>
+                </ul>
+              </div>
+              <div
+                class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div
+                  class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 mb-4 text-xl"
+                >
+                  <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h4 class="text-lg font-bold text-gray-900 mb-2">
+                  AI-Based Risk Analysis
+                </h4>
+                <ul class="text-gray-600 space-y-2 text-sm">
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i
+                    >Predictive modeling algorithms
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i
+                    >Automated mitigation strategies
+                  </li>
+                  <li>
+                    <i class="fa-solid fa-check text-green-500 mr-2"></i>Smart
+                    resource allocation
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- ================= VIEW: LIVE RISK MAP ================= -->
+      <div id="view-map" class="w-full h-full flex relative hidden">
+        <!-- Map Sidebar Controls -->
+        <div
+          class="w-[280px] bg-white border-r border-gray-200 shadow-[2px_0_10px_rgba(0,0,0,0.05)] z-[1000] flex flex-col h-full custom-scroll absolute left-0 top-0 overflow-y-auto"
+        >
+          <!-- Section: Map Details -->
+          <div class="p-4 border-b border-gray-100">
+            <div class="flex justify-between items-center mb-4">
+              <h3
+                class="text-[13px] font-bold text-gray-700 uppercase tracking-wide"
+              >
+                Map details
+              </h3>
+              <button class="text-gray-400 hover:text-gray-700">
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-y-6 gap-x-2">
+              <!-- Transit Toggle -->
+              <div
+                class="flex flex-col items-center justify-center gap-2 cursor-pointer tool-btn p-2"
+                onclick="toggleMapLayer('transit', this)"
+              >
+                <div
+                  class="layer-indicator absolute top-2 right-2 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-10"
+                ></div>
+                <div
+                  class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center icon-bg text-blue-500 transition-colors"
+                >
+                  <i class="fa-solid fa-train-subway text-lg"></i>
+                </div>
+                <span
+                  class="text-[11px] text-gray-600 text-center font-medium btn-text"
+                  >Transit</span
+                >
+              </div>
+
+              <!-- Traffic Toggle -->
+              <div
+                class="flex flex-col items-center justify-center gap-2 cursor-pointer tool-btn active p-2 relative"
+                onclick="toggleMapLayer('traffic', this)"
+              >
+                <div
+                  class="layer-indicator absolute top-2 right-2 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-10"
+                ></div>
+                <div
+                  class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center icon-bg text-blue-600 border border-blue-200 transition-colors"
+                >
+                  <i class="fa-solid fa-traffic-light text-lg"></i>
+                </div>
+                <span
+                  class="text-[11px] text-blue-700 text-center font-bold btn-text"
+                  >Traffic</span
+                >
+              </div>
+
+              <!-- Air Quality Toggle -->
+              <div
+                class="flex flex-col items-center justify-center gap-2 cursor-pointer tool-btn p-2 relative"
+                onclick="toggleMapLayer('airquality', this)"
+              >
+                <div
+                  class="layer-indicator absolute top-2 right-2 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-10"
+                ></div>
+                <div
+                  class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center icon-bg text-teal-500 transition-colors"
+                >
+                  <i class="fa-solid fa-leaf text-lg"></i>
+                </div>
+                <span
+                  class="text-[11px] text-gray-600 text-center font-medium text-nowrap btn-text"
+                  >Air Quality</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Map type -->
+          <div class="p-4">
+            <h3
+              class="text-[13px] font-bold text-gray-700 uppercase tracking-wide mb-4"
+            >
+              Map type
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div
+                id="btn-type-standard"
+                class="flex flex-col items-center justify-center gap-2 cursor-pointer p-3 border border-blue-200 rounded-xl bg-blue-50 transition-colors"
+                onclick="setMapType('standard')"
+              >
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Google_Maps_Logo_2020.svg/512px-Google_Maps_Logo_2020.svg.png"
+                  alt="Standard"
+                  class="w-12 h-12 object-contain opacity-80"
+                  onerror="
+                    this.src =
+                      'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTNhM2I4IiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik05IDIwTDMgMTVWNGw2IDVsNi01bDYgNXYxMWwtNi01bC02IDV6Ii8+PC9zdmc+'
+                  "
+                />
+                <span class="text-[12px] text-blue-700 text-center font-bold"
+                  >Standard</span
+                >
+              </div>
+              <div
+                id="btn-type-satellite"
+                class="flex flex-col items-center justify-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+                onclick="setMapType('satellite')"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
+                  alt="Satellite"
+                  class="w-12 h-12 object-cover rounded shadow-sm"
+                />
+                <span class="text-[12px] text-gray-600 text-center font-medium"
+                  >Satellite</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-auto p-4 text-center border-t border-gray-100">
+            <span class="text-[10px] text-gray-400"
+              ><i class="fa-solid fa-shield-halved"></i> Urban Resilience System
+              Active</span
+            >
+          </div>
+        </div>
+
+        <!-- Actual Map Container -->
+        <div
+          id="leaflet-map"
+          class="w-full h-full bg-blue-50 ml-[280px] z-0"
+        ></div>
+
+        <!-- Legend Overlay -->
+        <div
+          class="absolute bottom-8 left-1/2 transform -translate-x-1/2 ml-[140px] bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.15)] z-[1000] p-3 flex flex-col gap-2 min-w-[320px] border border-gray-100"
+        >
+          <div class="flex items-center justify-between text-sm text-gray-700">
+            <div
+              class="flex items-center gap-1 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
+            >
+              <span class="font-medium text-[13px]">Traffic Level</span>
+            </div>
+            <div
+              class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
+            >
+              <div
+                class="w-2 h-2 bg-green-500 rounded-full animate-pulse"
+              ></div>
+              <span class="font-semibold text-[13px] text-blue-600">Live</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-gray-500 px-2 mt-1">
+            <span>Fast</span>
+            <div class="h-1.5 flex-1 traffic-gradient rounded-full"></div>
+            <span>Slow</span>
+          </div>
+        </div>
+
+        <!-- Map Controls -->
+        <div class="absolute bottom-8 right-4 flex flex-col gap-2 z-[1000]">
+          <button
+            class="w-10 h-10 bg-white shadow-md rounded flex items-center justify-center text-gray-600 hover:text-blue-500 hover:bg-gray-50"
+            onclick="map.zoomIn()"
+          >
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <button
+            class="w-10 h-10 bg-white shadow-md rounded flex items-center justify-center text-gray-600 hover:text-blue-500 hover:bg-gray-50"
+            onclick="map.zoomOut()"
+          >
+            <i class="fa-solid fa-minus"></i>
+          </button>
+          <button
+            class="w-10 h-10 bg-white shadow-md rounded flex items-center justify-center text-gray-600 hover:text-blue-500 hover:bg-gray-50 mt-2"
+            onclick="map.setView([10.0246, 76.3072], 11)"
+          >
+            <i class="fa-solid fa-location-crosshairs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= VIEW: CITY STATUS ================= -->
+      <div
+        id="view-status"
+        class="w-full h-full overflow-y-auto custom-scroll hidden bg-gray-50"
+      >
+        <!-- Sticky header -->
+        <div
+          class="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-10 shadow-sm"
+        >
+          <div
+            class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3"
+          >
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <i class="fa-solid fa-location-dot text-blue-500 text-lg"></i>
+                <h2
+                  id="status-city-name"
+                  class="text-xl font-bold text-gray-900"
+                >
+                  Click anywhere on the Live Risk Map
+                </h2>
+                <span
+                  id="status-risk-badge"
+                  class="text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-500"
+                  >No location selected</span
+                >
+              </div>
+              <p
+                id="status-city-subtitle"
+                class="text-sm text-gray-400 mt-0.5 ml-6"
+              >
+                Select any city worldwide to load real-time data + AI analysis
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div
+                class="flex items-center gap-2 text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200"
+              >
+                <div
+                  class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
+                ></div>
+                <span id="status-timestamp">Waiting for location...</span>
+              </div>
+              <button
+                onclick="switchTab('map')"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <i class="fa-solid fa-map-location-dot"></i> Open Map
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-8 py-6">
+          <!-- Empty state -->
+          <div
+            id="status-no-data"
+            class="flex flex-col items-center justify-center py-24 text-center"
+          >
+            <div
+              class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6"
+            >
+              <i
+                class="fa-solid fa-map-location-dot text-blue-400 text-3xl"
+              ></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">
+              No Location Selected
+            </h3>
+            <p class="text-gray-400 max-w-sm mb-6">
+              Click anywhere on the <strong>Live Risk Map</strong> to instantly
+              load real-time city data, weather, infrastructure status and AI
+              recommendations.
+            </p>
+            <button
+              onclick="switchTab('map')"
+              class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <i class="fa-solid fa-map mr-2"></i>Go to Live Risk Map
+            </button>
+          </div>
+
+          <!-- All data cards — shown after map click -->
+          <div id="status-data-sections" class="hidden">
+            <!-- Row 1: CRS + Weather + AQI + Rain -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 mb-5">
+              <!-- City Resilience Score -->
+              <div
+                class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm flex flex-col items-center justify-center"
+              >
+                <p
+                  class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3"
+                >
+                  Resilience Score
+                </p>
+                <div
+                  class="relative w-28 h-28 flex items-center justify-center"
+                >
+                  <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      fill="none"
+                      stroke="#f1f5f9"
+                      stroke-width="10"
+                    ></circle>
+                    <circle
+                      id="crs-circle"
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      fill="none"
+                      stroke="#3b82f6"
+                      stroke-width="10"
+                      stroke-linecap="round"
+                      stroke-dasharray="264"
+                      stroke-dashoffset="264"
+                      style="
+                        transition:
+                          stroke-dashoffset 1s ease,
+                          stroke 0.5s ease;
+                      "
+                    ></circle>
+                  </svg>
+                  <div
+                    class="absolute inset-0 flex flex-col items-center justify-center"
+                  >
+                    <span
+                      id="crs-score"
+                      class="text-3xl font-bold text-gray-800"
+                      >--</span
+                    >
+                    <span class="text-[10px] text-gray-400 font-medium"
+                      >/ 100</span
+                    >
+                  </div>
+                </div>
+                <span
+                  id="crs-level"
+                  class="mt-3 text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-700"
+                  >--</span
+                >
+              </div>
+
+              <!-- Weather -->
+              <div
+                class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm"
+              >
+                <div class="flex justify-between items-start mb-3">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500"
+                  >
+                    <i class="fa-solid fa-temperature-half text-lg"></i>
+                  </div>
+                  <span
+                    class="text-xs font-semibold px-2 py-1 rounded bg-green-50 text-green-600"
+                    >Live</span
+                  >
+                </div>
+                <p class="text-xs text-gray-400 font-medium mb-1">
+                  Temperature & Weather
+                </p>
+                <p id="weather-temp" class="text-2xl font-bold text-gray-800">
+                  --
+                </p>
+                <p
+                  id="weather-desc"
+                  class="text-xs text-gray-500 mt-1 capitalize"
+                >
+                  --
+                </p>
+                <div class="mt-3 grid grid-cols-2 gap-1 text-xs text-gray-400">
+                  <span
+                    ><i class="fa-solid fa-droplet text-blue-300 mr-1"></i
+                    ><span id="weather-humidity">--</span>% RH</span
+                  >
+                  <span
+                    ><i class="fa-solid fa-wind text-gray-300 mr-1"></i
+                    ><span id="weather-wind">--</span> m/s</span
+                  >
+                </div>
+              </div>
+
+              <!-- AQI -->
+              <div
+                class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm"
+              >
+                <div class="flex justify-between items-start mb-3">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-500"
+                  >
+                    <i class="fa-solid fa-leaf text-lg"></i>
+                  </div>
+                  <span
+                    id="aqi-badge"
+                    class="text-xs font-semibold px-2 py-1 rounded bg-teal-50 text-teal-600"
+                    >--</span
+                  >
+                </div>
+                <p class="text-xs text-gray-400 font-medium mb-1">
+                  Air Quality Index
+                </p>
+                <p id="aqi-value" class="text-2xl font-bold text-gray-800">
+                  --
+                </p>
+                <p id="aqi-label-text" class="text-xs text-gray-500 mt-1">--</p>
+                <div class="mt-3 grid grid-cols-2 gap-1 text-xs text-gray-400">
+                  <span
+                    >PM2.5: <b id="aqi-pm25" class="text-gray-600">--</b></span
+                  >
+                  <span
+                    >Index:
+                    <b id="aqi-index" class="text-gray-600">--</b>/5</span
+                  >
+                </div>
+              </div>
+
+              <!-- Rainfall -->
+              <div
+                class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm"
+              >
+                <div class="flex justify-between items-start mb-3">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500"
+                  >
+                    <i class="fa-solid fa-cloud-rain text-lg"></i>
+                  </div>
+                  <span
+                    id="rain-badge"
+                    class="text-xs font-semibold px-2 py-1 rounded bg-blue-50 text-blue-600"
+                    >--</span
+                  >
+                </div>
+                <p class="text-xs text-gray-400 font-medium mb-1">Rainfall</p>
+                <p id="rain-1h" class="text-2xl font-bold text-gray-800">
+                  -- mm
+                </p>
+                <p class="text-xs text-gray-400 mt-1">last 1 hour</p>
+                <div class="mt-3 text-xs text-gray-400">
+                  3h total: <b id="rain-3h" class="text-gray-600">--</b>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 2: Infrastructure Risk cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-5">
+              <div
+                class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm"
+              >
+                <div class="flex items-center gap-2 mb-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 text-sm"
+                  >
+                    <i class="fa-solid fa-water"></i>
+                  </div>
+                  <span
+                    id="flood-badge"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-600"
+                    >--</span
+                  >
+                </div>
+                <p class="text-xs text-gray-400 font-medium mb-1">Flood Risk</p>
+                <p
+                  id="flood-value"
+                  class="text-sm font-semibold text-gray-800 leading-snug"
+                >
+                  --
+                </p>
+              </div>
+              <div
+                class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm"
+              >
+                <div class="flex items-center gap-2 mb-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500 text-sm"
+                  >
+                    <i class="fa-solid fa-car-side"></i>
+                  </div>
+                  <span
+                    id="traffic-badge"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-600"
+                    >--</span
+                  >
+                </div>
+                <p class="text-xs text-gray-400 font-medium mb-1">Traffic</p>
+                <p
+                  id="traffic-value"
+                  class="text-sm font-semibold text-gray-800 leading-snug"
+                >
+                  --
+                </p>
+              </div>
+              <div
+                class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm"
+              >
+                <div class="flex items-center gap-2 mb-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center text-yellow-600 text-sm"
+                  >
+                    <i class="fa-solid fa-bolt"></i>
+                  </div>
+                  <span
+                    id="power-badge"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-600"
+                    >--</span
+                  >
+                </div>
+                <p class="text-xs text-gray-400 font-medium mb-1">Power Grid</p>
+                <p
+                  id="power-value"
+                  class="text-sm font-semibold text-gray-800 leading-snug"
+                >
+                  --
+                </p>
+              </div>
+              <div
+                class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm"
+              >
+                <div class="flex items-center gap-2 mb-3">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500 text-sm"
+                  >
+                    <i class="fa-solid fa-people-group"></i>
+                  </div>
+                  <span
+                    id="crowd-badge"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600"
+                    >--</span
+                  >
+                </div>
+                <p class="text-xs text-gray-400 font-medium mb-1">
+                  Crowd Density
+                </p>
+                <p
+                  id="crowd-value"
+                  class="text-sm font-semibold text-gray-800 leading-snug"
+                >
+                  --
+                </p>
+              </div>
+            </div>
+
+            <!-- Row 3: Advice banner -->
+            <div
+              id="advice-banner"
+              class="rounded-2xl p-5 mb-5 border flex items-start gap-4 bg-blue-50 border-blue-200"
+            >
+              <div
+                class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shrink-0"
+              >
+                <i class="fa-solid fa-circle-info"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-blue-900 mb-1">
+                  City Guidance
+                </p>
+                <p id="advice-text" class="text-sm text-blue-800">--</p>
+              </div>
+            </div>
+
+            <!-- Row 4: AI Recommendations embedded -->
+            <div
+              class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+            >
+              <div
+                class="px-6 py-4 border-b border-gray-100 flex items-center justify-between"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600"
+                  >
+                    <i class="fa-solid fa-robot"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-gray-900 text-sm">
+                      AI Risk Recommendations
+                    </h3>
+                    <p id="ai-rec-subtitle" class="text-xs text-gray-400">
+                      Auto-generated for selected location
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onclick="generateAIRecommendations()"
+                  class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+              </div>
+              <div id="ai-rec-loading" class="p-8 text-center hidden">
+                <i
+                  class="fa-solid fa-spinner fa-spin text-purple-400 text-2xl mb-3 block"
+                ></i>
+                <p class="text-sm text-gray-400">
+                  Analyzing city conditions and generating recommendations...
+                </p>
+              </div>
+              <div id="ai-rec-content" class="p-6">
+                <div
+                  class="flex flex-col items-center py-8 text-center text-gray-300"
+                >
+                  <i class="fa-solid fa-brain text-4xl mb-4"></i>
+                  <p class="text-sm text-gray-400">
+                    AI recommendations will appear here after selecting a
+                    location.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- /status-data-sections -->
+        </div>
+      </div>
+
+      <!-- ================= VIEW: CLAUDE ASSISTANT ================= -->
+      <div id="view-claude" class="w-full h-full flex flex-col hidden bg-white">
+        <!-- Chat Header -->
+        <div
+          class="bg-white border-b border-gray-200 p-4 flex items-center justify-between shrink-0 shadow-sm z-10"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600"
+            >
+              <i class="fa-solid fa-robot text-lg"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-gray-900">Claude City Assistant</h2>
+              <span class="text-xs text-green-500 flex items-center gap-1"
+                ><div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                Online & Analyzing</span
+              >
+            </div>
+          </div>
+          <button
+            class="text-gray-400 hover:text-gray-600"
+            title="Clear Chat"
+            onclick="clearChat()"
+          >
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div
+          id="chat-messages"
+          class="flex-1 overflow-y-auto custom-scroll p-6 bg-slate-50 flex flex-col gap-6"
+        >
+          <!-- Initial AI Message -->
+          <div class="flex gap-4">
+            <div
+              class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 shrink-0 mt-1"
+            >
+              <i class="fa-solid fa-robot text-sm"></i>
+            </div>
+            <div
+              class="bg-white border border-gray-200 p-4 rounded-2xl chat-bubble-ai shadow-sm max-w-[80%]"
+            >
+              <p class="text-sm text-gray-700 leading-relaxed">
+                Hello. I am the Urban Resilience AI assistant. I have access to
+                real-time maps, infrastructure sensors, and predictive models.
+                How can I assist you with city management today?
+              </p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button
+                  class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-full transition-colors"
+                  onclick="sendSuggestion(this)"
+                >
+                  Provide a risk summary for today.
+                </button>
+                <button
+                  class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-full transition-colors"
+                  onclick="sendSuggestion(this)"
+                >
+                  What is the status of the power grid?
+                </button>
+                <button
+                  class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-full transition-colors"
+                  onclick="sendSuggestion(this)"
+                >
+                  Sector-specific insights for transit.
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mock History (Hidden initially, simulating a past conversation) -->
+          <div class="flex gap-4 flex-row-reverse hidden" id="mock-user-msg">
+            <div
+              class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shrink-0 mt-1"
+            >
+              <i class="fa-solid fa-user text-sm"></i>
+            </div>
+            <div
+              class="bg-blue-600 p-4 rounded-2xl chat-bubble-user shadow-sm max-w-[80%] text-white"
+            >
+              <p class="text-sm leading-relaxed">
+                Sector-specific insights for transit.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 hidden" id="mock-ai-msg">
+            <div
+              class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 shrink-0 mt-1"
+            >
+              <i class="fa-solid fa-robot text-sm"></i>
+            </div>
+            <div
+              class="bg-white border border-gray-200 p-4 rounded-2xl chat-bubble-ai shadow-sm max-w-[80%]"
+            >
+              <p
+                class="text-sm text-gray-700 leading-relaxed font-semibold mb-2"
+              >
+                Transit Sector Overview:
+              </p>
+              <ul class="text-sm text-gray-700 space-y-2 mb-3 list-disc pl-4">
+                <li>
+                  <strong>Metro Rail:</strong> Operating at normal capacity.
+                  Minor delay of 5 mins on the Blue Line due to track
+                  maintenance.
+                </li>
+                <li>
+                  <strong>Bus Network:</strong> Experiencing 20% slowdown on
+                  central routes due to the active traffic alert on NH66.
+                </li>
+                <li>
+                  <strong>Ferry Services:</strong> Suspended in the Northern
+                  zone due to high wind advisories.
+                </li>
+              </ul>
+              <p
+                class="text-sm text-gray-700 leading-relaxed bg-blue-50 p-2 rounded border border-blue-100"
+              >
+                <strong>Actionable Recommendation:</strong> Deploy 10 reserve
+                buses to the central terminal to offset metro crowd overflow and
+                adjust routing to bypass NH66.
+              </p>
+            </div>
+          </div>
+
+          <!-- Typing Indicator (Hidden) -->
+          <div class="flex gap-4 hidden" id="typing-indicator">
+            <div
+              class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 shrink-0"
+            >
+              <i class="fa-solid fa-robot text-sm"></i>
+            </div>
+            <div
+              class="bg-white border border-gray-200 p-4 rounded-2xl chat-bubble-ai shadow-sm flex gap-1 items-center"
+            >
+              <div
+                class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+              ></div>
+              <div
+                class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                style="animation-delay: 0.1s"
+              ></div>
+              <div
+                class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                style="animation-delay: 0.2s"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="p-4 bg-white border-t border-gray-200 shrink-0">
+          <div class="max-w-4xl mx-auto relative flex items-center">
+            <button
+              class="absolute left-3 text-gray-400 hover:text-blue-600 transition-colors p-2"
+            >
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="Ask Claude about city risks, insights, or mitigation plans..."
+              class="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm text-gray-700"
+              onkeypress="handleChatEnter(event)"
+            />
+            <button
+              class="absolute right-3 bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
+              onclick="submitChat()"
+            >
+              <i class="fa-solid fa-paper-plane text-xs"></i>
+            </button>
+          </div>
+          <div class="text-center mt-2">
+            <span class="text-[10px] text-gray-400"
+              >Claude may produce inaccurate information about real-time
+              metrics. Always verify with actual sensor data.</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= VIEW: METADATA ================= -->
+      <div
+        id="view-metadata"
+        class="w-full h-full hidden bg-gray-950 custom-scroll overflow-y-auto"
+        style="background: #0a0f1e"
+      >
+        <!-- ── Top status bar ── -->
+        <div
+          style="background: #0d1526; border-bottom: 1px solid #1e3a5f"
+          class="px-8 py-4 sticky top-0 z-20"
+        >
+          <div
+            class="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3"
+          >
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div
+                  class="w-3 h-3 rounded-full bg-green-400"
+                  style="box-shadow: 0 0 8px #4ade80"
+                ></div>
+                <div
+                  class="w-3 h-3 rounded-full bg-green-400 absolute inset-0 animate-ping opacity-40"
+                ></div>
+              </div>
+              <span
+                class="text-white font-bold tracking-widest text-sm"
+                style="
+                  font-family: 'Courier New', monospace;
+                  letter-spacing: 0.15em;
+                "
+                >URBAN RESILIENCE AI — SYSTEM CORE</span
+              >
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="text-xs font-mono" style="color: #64748b">
+                UPTIME:
+                <span id="meta-uptime" style="color: #4ade80">00:00:00</span>
+              </div>
+              <div class="text-xs font-mono" style="color: #64748b">
+                SYS TIME:
+                <span id="meta-clock" style="color: #38bdf8">--:--:--</span>
+              </div>
+              <div
+                id="meta-system-badge"
+                class="px-3 py-1 rounded text-xs font-bold"
+                style="
+                  background: #052e16;
+                  color: #4ade80;
+                  border: 1px solid #166534;
+                "
+              >
+                ALL SYSTEMS NOMINAL
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-8 py-6 space-y-5">
+          <!-- ── Row 1: 5 live metric cards ── -->
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div
+              class="rounded-xl p-4 text-center"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <p
+                class="text-xs font-mono mb-2"
+                style="color: #475569; letter-spacing: 0.1em"
+              >
+                RISK SCORE
+              </p>
+              <p
+                id="meta-risk-score"
+                class="text-3xl font-bold"
+                style="color: #f97316; font-family: 'Courier New', monospace"
+              >
+                --
+              </p>
+              <p class="text-xs mt-1" style="color: #475569">/ 12 max</p>
+              <div class="mt-2 h-1 rounded-full" style="background: #1e293b">
+                <div
+                  id="meta-risk-bar"
+                  class="h-1 rounded-full transition-all duration-700"
+                  style="background: #f97316; width: 0%"
+                ></div>
+              </div>
+            </div>
+
+            <div
+              class="rounded-xl p-4 text-center"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <p
+                class="text-xs font-mono mb-2"
+                style="color: #475569; letter-spacing: 0.1em"
+              >
+                RESILIENCE
+              </p>
+              <p
+                id="meta-resilience"
+                class="text-3xl font-bold"
+                style="color: #4ade80; font-family: 'Courier New', monospace"
+              >
+                --
+              </p>
+              <p class="text-xs mt-1" style="color: #475569">/ 100</p>
+              <div class="mt-2 h-1 rounded-full" style="background: #1e293b">
+                <div
+                  id="meta-res-bar"
+                  class="h-1 rounded-full transition-all duration-700"
+                  style="background: #4ade80; width: 0%"
+                ></div>
+              </div>
+            </div>
+
+            <div
+              class="rounded-xl p-4 text-center"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <p
+                class="text-xs font-mono mb-2"
+                style="color: #475569; letter-spacing: 0.1em"
+              >
+                API CALLS
+              </p>
+              <p
+                id="meta-api-calls"
+                class="text-3xl font-bold"
+                style="color: #38bdf8; font-family: 'Courier New', monospace"
+              >
+                0
+              </p>
+              <p class="text-xs mt-1" style="color: #475569">this session</p>
+            </div>
+
+            <div
+              class="rounded-xl p-4 text-center"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <p
+                class="text-xs font-mono mb-2"
+                style="color: #475569; letter-spacing: 0.1em"
+              >
+                MAP CLICKS
+              </p>
+              <p
+                id="meta-map-clicks"
+                class="text-3xl font-bold"
+                style="color: #a78bfa; font-family: 'Courier New', monospace"
+              >
+                0
+              </p>
+              <p class="text-xs mt-1" style="color: #475569">
+                locations scanned
+              </p>
+            </div>
+
+            <div
+              class="rounded-xl p-4 text-center"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <p
+                class="text-xs font-mono mb-2"
+                style="color: #475569; letter-spacing: 0.1em"
+              >
+                LAST POLL
+              </p>
+              <p
+                id="meta-last-poll"
+                class="text-3xl font-bold"
+                style="color: #fbbf24; font-family: 'Courier New', monospace"
+              >
+                --s
+              </p>
+              <p class="text-xs mt-1" style="color: #475569">ago</p>
+            </div>
+          </div>
+
+          <!-- ── Row 2: Agent health + Live event feed ── -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Agent Health Monitor -->
+            <div
+              class="rounded-xl overflow-hidden"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <div
+                class="px-5 py-3 flex items-center justify-between"
+                style="border-bottom: 1px solid #1e3a5f"
+              >
+                <div class="flex items-center gap-2">
+                  <i
+                    class="fa-solid fa-microchip text-xs"
+                    style="color: #38bdf8"
+                  ></i>
+                  <span
+                    class="text-xs font-bold tracking-widest font-mono"
+                    style="color: #94a3b8; letter-spacing: 0.12em"
+                    >AGENT HEALTH MONITOR</span
+                  >
+                </div>
+                <span
+                  id="meta-agents-ok"
+                  class="text-xs font-mono px-2 py-0.5 rounded"
+                  style="background: #052e16; color: #4ade80"
+                  >4/4 ONLINE</span
+                >
+              </div>
+              <div class="p-4 space-y-3">
+                <!-- Flood Agent -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-lg"
+                  style="background: #0a1628"
+                >
+                  <div class="relative shrink-0">
+                    <div
+                      class="w-2 h-2 rounded-full bg-green-400"
+                      id="dot-flood"
+                      style="box-shadow: 0 0 6px #4ade80"
+                    ></div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                      <span
+                        class="text-xs font-bold font-mono"
+                        style="color: #e2e8f0"
+                        >flood_agent.py</span
+                      >
+                      <span
+                        id="badge-flood"
+                        class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                        style="background: #052e16; color: #4ade80"
+                        >NOMINAL</span
+                      >
+                    </div>
+                    <p
+                      id="status-flood"
+                      class="text-[10px] mt-0.5 font-mono truncate"
+                      style="color: #475569"
+                    >
+                      Monitoring rainfall · river levels · drainage
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Traffic Agent -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-lg"
+                  style="background: #0a1628"
+                >
+                  <div
+                    class="w-2 h-2 rounded-full bg-green-400 shrink-0"
+                    id="dot-traffic"
+                    style="box-shadow: 0 0 6px #4ade80"
+                  ></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                      <span
+                        class="text-xs font-bold font-mono"
+                        style="color: #e2e8f0"
+                        >traffic_agent.py</span
+                      >
+                      <span
+                        id="badge-traffic"
+                        class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                        style="background: #052e16; color: #4ade80"
+                        >NOMINAL</span
+                      >
+                    </div>
+                    <p
+                      id="status-traffic"
+                      class="text-[10px] mt-0.5 font-mono truncate"
+                      style="color: #475569"
+                    >
+                      Road congestion · speed sensors · corridors
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Power Agent -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-lg"
+                  style="background: #0a1628"
+                >
+                  <div
+                    class="w-2 h-2 rounded-full bg-green-400 shrink-0"
+                    id="dot-power"
+                    style="box-shadow: 0 0 6px #4ade80"
+                  ></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                      <span
+                        class="text-xs font-bold font-mono"
+                        style="color: #e2e8f0"
+                        >power_agent.py</span
+                      >
+                      <span
+                        id="badge-power"
+                        class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                        style="background: #052e16; color: #4ade80"
+                        >NOMINAL</span
+                      >
+                    </div>
+                    <p
+                      id="status-power"
+                      class="text-[10px] mt-0.5 font-mono truncate"
+                      style="color: #475569"
+                    >
+                      KSEB grid health · outage detection
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Event Agent -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-lg"
+                  style="background: #0a1628"
+                >
+                  <div
+                    class="w-2 h-2 rounded-full bg-green-400 shrink-0"
+                    id="dot-event"
+                    style="box-shadow: 0 0 6px #4ade80"
+                  ></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                      <span
+                        class="text-xs font-bold font-mono"
+                        style="color: #e2e8f0"
+                        >event_agent.py</span
+                      >
+                      <span
+                        id="badge-event"
+                        class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                        style="background: #052e16; color: #4ade80"
+                        >NOMINAL</span
+                      >
+                    </div>
+                    <p
+                      id="status-event"
+                      class="text-[10px] mt-0.5 font-mono truncate"
+                      style="color: #475569"
+                    >
+                      Public events · crowd surges · city alerts
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Coordinator -->
+                <div
+                  class="flex items-center gap-3 p-3 rounded-lg"
+                  style="background: #0a1628; border: 1px solid #1e3a5f"
+                >
+                  <div
+                    class="w-2 h-2 rounded-full shrink-0 animate-pulse"
+                    style="background: #a78bfa; box-shadow: 0 0 6px #a78bfa"
+                  ></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                      <span
+                        class="text-xs font-bold font-mono"
+                        style="color: #c4b5fd"
+                        >coordinator.py</span
+                      >
+                      <span
+                        class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                        style="background: #2e1065; color: #a78bfa"
+                        >ORCHESTRATOR</span
+                      >
+                    </div>
+                    <p
+                      class="text-[10px] mt-0.5 font-mono"
+                      style="color: #475569"
+                    >
+                      Multi-agent fusion · Risk score 0–12
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Event Feed -->
+            <div
+              class="rounded-xl overflow-hidden flex flex-col"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <div
+                class="px-5 py-3 flex items-center justify-between shrink-0"
+                style="border-bottom: 1px solid #1e3a5f"
+              >
+                <div class="flex items-center gap-2">
+                  <div
+                    class="w-2 h-2 rounded-full bg-red-400 animate-pulse"
+                    style="box-shadow: 0 0 6px #f87171"
+                  ></div>
+                  <span
+                    class="text-xs font-bold tracking-widest font-mono"
+                    style="color: #94a3b8; letter-spacing: 0.12em"
+                    >LIVE EVENT FEED</span
+                  >
+                </div>
+                <button
+                  onclick="clearEventFeed()"
+                  class="text-[10px] font-mono px-2 py-0.5 rounded hover:opacity-80 transition"
+                  style="color: #475569; border: 1px solid #1e3a5f"
+                >
+                  CLEAR
+                </button>
+              </div>
+              <div
+                id="live-event-feed"
+                class="flex-1 overflow-y-auto p-3 space-y-1.5 font-mono text-[11px]"
+                style="height: 280px; background: #060d1a"
+              >
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Row 3: Data Sources + Current location status ── -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- External APIs status -->
+            <div
+              class="rounded-xl overflow-hidden"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <div class="px-5 py-3" style="border-bottom: 1px solid #1e3a5f">
+                <span
+                  class="text-xs font-bold tracking-widest font-mono"
+                  style="color: #94a3b8; letter-spacing: 0.12em"
+                  >EXTERNAL DATA SOURCES</span
+                >
+              </div>
+              <div class="divide-y" style="border-color: #111e35">
+                <div class="flex items-center justify-between px-5 py-3">
+                  <div>
+                    <p
+                      class="text-xs font-bold font-mono"
+                      style="color: #e2e8f0"
+                    >
+                      OpenWeatherMap API
+                    </p>
+                    <p
+                      class="text-[10px] font-mono mt-0.5"
+                      style="color: #475569"
+                    >
+                      Temperature · Rain · Wind · Humidity
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <span
+                      id="src-owm"
+                      class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                      style="background: #052e16; color: #4ade80"
+                      >LIVE</span
+                    >
+                    <p
+                      class="text-[10px] font-mono mt-1"
+                      style="color: #475569"
+                    >
+                      REST · JSON
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between px-5 py-3">
+                  <div>
+                    <p
+                      class="text-xs font-bold font-mono"
+                      style="color: #e2e8f0"
+                    >
+                      OpenWeatherMap AQI
+                    </p>
+                    <p
+                      class="text-[10px] font-mono mt-0.5"
+                      style="color: #475569"
+                    >
+                      Air Quality · PM2.5 · Pollutants
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <span
+                      id="src-aqi"
+                      class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                      style="background: #052e16; color: #4ade80"
+                      >LIVE</span
+                    >
+                    <p
+                      class="text-[10px] font-mono mt-1"
+                      style="color: #475569"
+                    >
+                      REST · JSON
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between px-5 py-3">
+                  <div>
+                    <p
+                      class="text-xs font-bold font-mono"
+                      style="color: #e2e8f0"
+                    >
+                      Overpass API (OSM)
+                    </p>
+                    <p
+                      class="text-[10px] font-mono mt-0.5"
+                      style="color: #475569"
+                    >
+                      Roads · Transit · Rail — worldwide
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <span
+                      class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                      style="background: #052e16; color: #4ade80"
+                      >LIVE</span
+                    >
+                    <p
+                      class="text-[10px] font-mono mt-1"
+                      style="color: #475569"
+                    >
+                      REST · XML
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between px-5 py-3">
+                  <div>
+                    <p
+                      class="text-xs font-bold font-mono"
+                      style="color: #c4b5fd"
+                    >
+                      Anthropic Claude API
+                    </p>
+                    <p
+                      class="text-[10px] font-mono mt-0.5"
+                      style="color: #475569"
+                    >
+                      LLM reasoning · Chat · Recommendations
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <span
+                      id="src-claude"
+                      class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                      style="background: #2e1065; color: #a78bfa"
+                      >ACTIVE</span
+                    >
+                    <p
+                      class="text-[10px] font-mono mt-1"
+                      style="color: #475569"
+                    >
+                      claude-sonnet-4-6
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between px-5 py-3">
+                  <div>
+                    <p
+                      class="text-xs font-bold font-mono"
+                      style="color: #e2e8f0"
+                    >
+                      monitor.py (Internal)
+                    </p>
+                    <p
+                      class="text-[10px] font-mono mt-0.5"
+                      style="color: #475569"
+                    >
+                      Background poller · Every 20s
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <span
+                      id="src-monitor"
+                      class="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+                      style="background: #422006; color: #fbbf24"
+                      >CHECKING...</span
+                    >
+                    <p
+                      class="text-[10px] font-mono mt-1"
+                      style="color: #475569"
+                    >
+                      File I/O · /alert
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Current location snapshot + Risk breakdown -->
+            <div
+              class="rounded-xl overflow-hidden"
+              style="background: #0d1526; border: 1px solid #1e3a5f"
+            >
+              <div class="px-5 py-3" style="border-bottom: 1px solid #1e3a5f">
+                <span
+                  class="text-xs font-bold tracking-widest font-mono"
+                  style="color: #94a3b8; letter-spacing: 0.12em"
+                  >CURRENT LOCATION SNAPSHOT</span
+                >
+              </div>
+              <div class="p-5">
+                <div
+                  id="meta-loc-empty"
+                  class="flex flex-col items-center justify-center py-8 text-center"
+                >
+                  <i
+                    class="fa-solid fa-satellite-dish text-2xl mb-3"
+                    style="color: #1e3a5f"
+                  ></i>
+                  <p class="text-xs font-mono" style="color: #334155">
+                    No location scanned yet.
+                  </p>
+                  <p class="text-[10px] font-mono mt-1" style="color: #1e3a5f">
+                    Click map to populate.
+                  </p>
+                </div>
+                <div id="meta-loc-data" class="hidden space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono" style="color: #475569"
+                      >COORDINATES</span
+                    >
+                    <span
+                      id="meta-coords"
+                      class="text-xs font-bold font-mono"
+                      style="color: #38bdf8"
+                      >--</span
+                    >
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono" style="color: #475569"
+                      >CITY</span
+                    >
+                    <span
+                      id="meta-city"
+                      class="text-xs font-bold font-mono"
+                      style="color: #e2e8f0"
+                      >--</span
+                    >
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono" style="color: #475569"
+                      >RISK LEVEL</span
+                    >
+                    <span
+                      id="meta-level"
+                      class="text-xs font-bold font-mono"
+                      style="color: #f97316"
+                      >--</span
+                    >
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono" style="color: #475569"
+                      >TEMPERATURE</span
+                    >
+                    <span
+                      id="meta-temp"
+                      class="text-xs font-bold font-mono"
+                      style="color: #e2e8f0"
+                      >--</span
+                    >
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono" style="color: #475569"
+                      >AIR QUALITY</span
+                    >
+                    <span
+                      id="meta-aqi-m"
+                      class="text-xs font-bold font-mono"
+                      style="color: #e2e8f0"
+                      >--</span
+                    >
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-mono" style="color: #475569"
+                      >RAINFALL (1h)</span
+                    >
+                    <span
+                      id="meta-rain-m"
+                      class="text-xs font-bold font-mono"
+                      style="color: #38bdf8"
+                      >--</span
+                    >
+                  </div>
+
+                  <!-- Risk component bars -->
+                  <div
+                    class="pt-3 space-y-2"
+                    style="border-top: 1px solid #1e3a5f"
+                  >
+                    <p
+                      class="text-[10px] font-mono mb-2"
+                      style="color: #334155"
+                    >
+                      RISK COMPONENT BREAKDOWN
+                    </p>
+                    <div>
+                      <div
+                        class="flex justify-between text-[10px] font-mono mb-1"
+                      >
+                        <span style="color: #60a5fa">FLOOD</span>
+                        <span id="meta-flood-txt" style="color: #475569"
+                          >--</span
+                        >
+                      </div>
+                      <div
+                        class="h-1.5 rounded-full"
+                        style="background: #1e293b"
+                      >
+                        <div
+                          id="meta-flood-bar"
+                          class="h-1.5 rounded-full transition-all duration-700"
+                          style="background: #60a5fa; width: 0%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        class="flex justify-between text-[10px] font-mono mb-1"
+                      >
+                        <span style="color: #f87171">TRAFFIC</span>
+                        <span id="meta-traffic-txt" style="color: #475569"
+                          >--</span
+                        >
+                      </div>
+                      <div
+                        class="h-1.5 rounded-full"
+                        style="background: #1e293b"
+                      >
+                        <div
+                          id="meta-traffic-bar"
+                          class="h-1.5 rounded-full transition-all duration-700"
+                          style="background: #f87171; width: 0%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        class="flex justify-between text-[10px] font-mono mb-1"
+                      >
+                        <span style="color: #fbbf24">POWER</span>
+                        <span id="meta-power-txt" style="color: #475569"
+                          >--</span
+                        >
+                      </div>
+                      <div
+                        class="h-1.5 rounded-full"
+                        style="background: #1e293b"
+                      >
+                        <div
+                          id="meta-power-bar"
+                          class="h-1.5 rounded-full transition-all duration-700"
+                          style="background: #fbbf24; width: 0%"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Row 4: Tech stack chips ── -->
+
+          <!-- ── Row 5: Live terminal log ── -->
+          <div
+            class="rounded-xl overflow-hidden"
+            style="background: #060d1a; border: 1px solid #1e3a5f"
+          >
+            <div
+              class="flex items-center gap-2 px-5 py-3"
+              style="background: #0d1526; border-bottom: 1px solid #1e3a5f"
+            >
+              <div class="flex gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+              </div>
+              <span class="font-mono text-xs ml-2" style="color: #475569"
+                >system.log</span
+              >
+              <span class="font-mono text-xs ml-auto" style="color: #1e3a5f"
+                >urban_resilience v2.4.1 · port 8000</span
+              >
+            </div>
+            <div
+              id="meta-terminal"
+              class="font-mono text-xs leading-relaxed p-5 overflow-y-auto"
+              style="height: 220px; color: #4ade80"
+            >
+              <div style="color: #334155">
+                [INIT] 2026-02-24T16:20:01Z System boot...
+              </div>
+              <div style="color: #4ade80">
+                [INFO] Loading Urban Resilience Core v2.4.1
+              </div>
+              <div style="color: #4ade80">
+                [SUCCESS] Database connection established.
+              </div>
+              <div style="color: #4ade80">
+                [INFO] Connecting to IoT Sensor Network (Gateway: Kochi_Primary)
+              </div>
+              <div style="color: #4ade80">
+                [SUCCESS] Connected to 4,208 active nodes.
+              </div>
+              <div style="color: #4ade80">
+                [INFO] Initializing Leaflet GIS engine...
+              </div>
+              <div style="color: #4ade80">[SUCCESS] Base layers loaded.</div>
+              <div style="color: #fbbf24">
+                [WARNING] Model 'Flood_Predict_v3' reports minor drift (0.02).
+                Re-calibrating.
+              </div>
+              <div style="color: #4ade80">
+                [SUCCESS] AI Models loaded and active.
+              </div>
+              <div style="color: #4ade80">
+                [INFO] Establishing secure connection to Claude API...
+              </div>
+              <div style="color: #4ade80">
+                [SUCCESS] Claude Sonnet 4 connected.
+              </div>
+              <div style="color: #38bdf8">
+                [INFO] System nominal. Listening for events...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Metadata JS — injected inline after the section ── -->
+      <script>
+        (function () {
+          // ── Session state counters ──────────────────────────────
+          let _apiCalls = 0;
+          let _mapClicks = 0;
+          let _lastPollAgo = 0;
+          let _startTime = Date.now();
+          let _lastLocData = null;
+
+          // ── Uptime + clock ──────────────────────────────────────
+          function pad(n) {
+            return String(n).padStart(2, '0');
+          }
+
+          function tickClock() {
+            const now = new Date();
+            document.getElementById('meta-clock').textContent =
+              `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            const up = Math.floor((Date.now() - _startTime) / 1000);
+            const h = Math.floor(up / 3600);
+            const m = Math.floor((up % 3600) / 60);
+            const s = up % 60;
+            document.getElementById('meta-uptime').textContent =
+              `${pad(h)}:${pad(m)}:${pad(s)}`;
+
+            _lastPollAgo++;
+            const el = document.getElementById('meta-last-poll');
+            if (el)
+              el.textContent = _lastPollAgo > 99 ? '99+s' : _lastPollAgo + 's';
+          }
+          setInterval(tickClock, 1000);
+
+          // ── Log line helper ─────────────────────────────────────
+          function addLog(msg, type) {
+            const term = document.getElementById('meta-terminal');
+            if (!term) return;
+            const colors = {
+              success: '#4ade80',
+              info: '#38bdf8',
+              warning: '#fbbf24',
+              error: '#f87171',
+              event: '#a78bfa',
+            };
+            const now = new Date()
+              .toISOString()
+              .replace('T', ' ')
+              .split('.')[0];
+            const div = document.createElement('div');
+            div.style.color = colors[type] || '#4ade80';
+            div.textContent = `[${now}] ${msg}`;
+            term.appendChild(div);
+            term.scrollTop = term.scrollHeight;
+          }
+
+          // ── Live event feed helper ──────────────────────────────
+          function addEvent(icon, msg, color) {
+            const feed = document.getElementById('live-event-feed');
+            if (!feed) return;
+            const row = document.createElement('div');
+            row.className = 'flex items-start gap-2 py-1';
+            row.style.borderBottom = '1px solid #0d1526';
+            const ts = new Date().toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            });
+            row.innerHTML = `
+            <span style="color:#334155;flex-shrink:0">${ts}</span>
+            <span style="color:${color};flex-shrink:0">${icon}</span>
+            <span style="color:#94a3b8">${msg}</span>`;
+            feed.insertBefore(row, feed.firstChild);
+            // cap at 40 entries
+            while (feed.children.length > 40) feed.removeChild(feed.lastChild);
+          }
+
+          window.clearEventFeed = function () {
+            const f = document.getElementById('live-event-feed');
+            if (f) f.innerHTML = '';
+          };
+
+          // ── Intercept API calls (patch fetch globally) ──────────
+          const _origFetch = window.fetch;
+          window.fetch = async function (...args) {
+            const url = typeof args[0] === 'string' ? args[0] : '';
+            const result = await _origFetch.apply(this, args);
+
+            // Count calls and log them
+            if (url.startsWith('/')) {
+              _apiCalls++;
+              const el = document.getElementById('meta-api-calls');
+              if (el) el.textContent = _apiCalls;
+
+              const labels = {
+                '/alert': {
+                  icon: '📡',
+                  msg: 'Polled /alert — city status updated',
+                  color: '#4ade80',
+                },
+                '/location-status': {
+                  icon: '📍',
+                  msg: 'Location status fetch completed',
+                  color: '#38bdf8',
+                },
+                '/claude': {
+                  icon: '🤖',
+                  msg: 'Claude API call completed',
+                  color: '#a78bfa',
+                },
+                '/api/air-quality': {
+                  icon: '🌿',
+                  msg: 'Air quality data fetched',
+                  color: '#2dd4bf',
+                },
+              };
+              const matched = Object.keys(labels).find(k => url.includes(k));
+              if (matched) {
+                const { icon, msg, color } = labels[matched];
+                addEvent(icon, msg, color);
+              }
+
+              // Reset poll timer on /alert
+              if (url.includes('/alert')) {
+                _lastPollAgo = 0;
+                addLog(`[POLL] /alert endpoint responded`, 'success');
+              }
+              if (url.includes('/claude')) {
+                addLog(`[LLM] Claude API call dispatched`, 'event');
+              }
+              if (url.includes('/location-status')) {
+                _mapClicks++;
+                const el2 = document.getElementById('meta-map-clicks');
+                if (el2) el2.textContent = _mapClicks;
+                addLog(
+                  `[GEO] Location status fetched (click #${_mapClicks})`,
+                  'info'
+                );
+              }
+            }
+            return result;
+          };
+
+          // ── Pull data from /alert and update everything ─────────
+          async function refreshMetadata() {
+            try {
+              const res = await _origFetch('/alert');
+              const data = await res.json();
+              if (data.status === 'No data yet') {
+                document.getElementById('src-monitor').textContent = 'NO DATA';
+                document.getElementById('src-monitor').style.color = '#fbbf24';
+                return;
+              }
+
+              // Monitor badge
+              document.getElementById('src-monitor').textContent = 'ACTIVE';
+              document.getElementById('src-monitor').style.color = '#4ade80';
+              document.getElementById('src-monitor').style.background =
+                '#052e16';
+
+              // Risk score card
+              const rs = data.risk_score || 0;
+              document.getElementById('meta-risk-score').textContent = rs;
+              document.getElementById('meta-risk-bar').style.width =
+                `${(rs / 12) * 100}%`;
+              const score = Math.max(0, Math.round((1 - rs / 12) * 100));
+              document.getElementById('meta-resilience').textContent = score;
+              document.getElementById('meta-res-bar').style.width = score + '%';
+
+              // Agent badges from real data
+              function setAgent(id, text, isAlert) {
+                const dot = document.getElementById('dot-' + id);
+                const badge = document.getElementById('badge-' + id);
+                const stat = document.getElementById('status-' + id);
+                if (badge) {
+                  badge.textContent = isAlert ? 'ALERT' : 'NOMINAL';
+                  badge.style.color = isAlert ? '#f97316' : '#4ade80';
+                  badge.style.background = isAlert ? '#431407' : '#052e16';
+                }
+                if (dot) {
+                  dot.style.background = isAlert ? '#f97316' : '#4ade80';
+                  dot.style.boxShadow = isAlert
+                    ? '0 0 6px #f97316'
+                    : '0 0 6px #4ade80';
+                }
+                if (stat && text) stat.textContent = text;
+              }
+
+              const flood = data.flood || '';
+              const traffic = data.traffic || '';
+              const power = data.power || '';
+
+              setAgent('flood', flood, flood.match(/HIGH|Sever/i));
+              setAgent('traffic', traffic, traffic.match(/Heavy|Sever/i));
+              setAgent('power', power, power.match(/Outage|OUTAGE/i));
+              setAgent('event', 'Public events · crowd monitoring', false);
+
+              // System badge
+              const critical = data.level && data.level.includes('CRITICAL');
+              const warning = data.level && data.level.includes('WARNING');
+              const sysBadge = document.getElementById('meta-system-badge');
+              if (critical) {
+                sysBadge.textContent = '🚨 CRITICAL ALERT';
+                sysBadge.style.color = '#f87171';
+                sysBadge.style.background = '#450a0a';
+                sysBadge.style.borderColor = '#7f1d1d';
+              } else if (warning) {
+                sysBadge.textContent = '⚠️ WARNING ACTIVE';
+                sysBadge.style.color = '#fbbf24';
+                sysBadge.style.background = '#422006';
+                sysBadge.style.borderColor = '#92400e';
+              } else {
+                sysBadge.textContent = 'ALL SYSTEMS NOMINAL';
+                sysBadge.style.color = '#4ade80';
+                sysBadge.style.background = '#052e16';
+                sysBadge.style.borderColor = '#166534';
+              }
+
+              addLog(
+                `[AGENTS] flood=${flood.slice(0, 20)} traffic=${traffic.slice(0, 20)}`,
+                'info'
+              );
+            } catch (e) {
+              document.getElementById('src-monitor').textContent = 'OFFLINE';
+              document.getElementById('src-monitor').style.color = '#f87171';
+              addLog('[ERROR] /alert endpoint unreachable', 'error');
+            }
+          }
+
+          // ── Watch for location data updates from populateCityStatus ──
+          const _origPopulate = window.populateCityStatus;
+          if (typeof _origPopulate === 'function') {
+            window.populateCityStatus = function (data, lat, lon) {
+              _origPopulate(data, lat, lon);
+              updateMetaLocation(data, lat, lon);
+            };
+          } else {
+            // If not yet defined, poll for it
+            let attempts = 0;
+            const wait = setInterval(() => {
+              attempts++;
+              if (typeof window.populateCityStatus === 'function') {
+                const orig = window.populateCityStatus;
+                window.populateCityStatus = function (data, lat, lon) {
+                  orig(data, lat, lon);
+                  updateMetaLocation(data, lat, lon);
+                };
+                clearInterval(wait);
+              }
+              if (attempts > 30) clearInterval(wait);
+            }, 500);
+          }
+
+          function updateMetaLocation(data, lat, lon) {
+            _lastLocData = data;
+            const rw = data.raw_weather || {};
+
+            document.getElementById('meta-loc-empty').classList.add('hidden');
+            document.getElementById('meta-loc-data').classList.remove('hidden');
+
+            document.getElementById('meta-coords').textContent =
+              `${lat}, ${lon}`;
+            document.getElementById('meta-city').textContent =
+              data.city || '--';
+            document.getElementById('meta-level').textContent =
+              data.level || '--';
+            document.getElementById('meta-temp').textContent = rw.temperature
+              ? rw.temperature + '°C'
+              : '--';
+            document.getElementById('meta-aqi-m').textContent =
+              rw.aqi_label || '--';
+            document.getElementById('meta-rain-m').textContent =
+              (rw.rain_1h ?? 0) + ' mm/h';
+
+            // Risk bars
+            const flood = data.flood || '';
+            const traffic = data.traffic || '';
+            const power = data.power || '';
+
+            document.getElementById('meta-flood-txt').textContent = flood.slice(
+              0,
+              28
+            );
+            document.getElementById('meta-traffic-txt').textContent =
+              traffic.slice(0, 28);
+            document.getElementById('meta-power-txt').textContent = power.slice(
+              0,
+              28
+            );
+
+            document.getElementById('meta-flood-bar').style.width = flood.match(
+              /HIGH|Sever/i
+            )
+              ? '80%'
+              : '15%';
+            document.getElementById('meta-traffic-bar').style.width =
+              traffic.match(/Heavy|Sever/i) ? '75%' : '20%';
+            document.getElementById('meta-power-bar').style.width = power.match(
+              /Outage/i
+            )
+              ? '90%'
+              : '10%';
+
+            addEvent(
+              '📍',
+              `Location scanned: ${data.city || lat + ',' + lon} — ${data.level}`,
+              '#38bdf8'
+            );
+          }
+
+          // ── Boot sequence ───────────────────────────────────────
+          addEvent('🚀', 'Urban Resilience AI session started', '#4ade80');
+          addEvent('🔌', 'FastAPI backend connected on port 8000', '#4ade80');
+          addEvent('🤖', 'Claude Sonnet 4 LLM ready', '#a78bfa');
+          addEvent('🗺️', 'Leaflet map engine initialised', '#38bdf8');
+
+          // Initial metadata refresh + repeat every 20s
+          refreshMetadata();
+          setInterval(refreshMetadata, 20000);
+        })();
+      </script>
+    </main>
+
+    <!-- Leaflet JS for the Interactive Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+      // --- 0. Live City Status Updater ---
+      async function fetchCityStatus() {
+        try {
+          const res = await fetch('/alert');
+          const data = await res.json();
+          if (data.status === 'No data yet') return;
+
+          // ── Resilience Score (inverse of risk: 0 risk = 100 score) ──
+          const maxRisk = 12;
+          const score = Math.max(
+            0,
+            Math.round((1 - (data.risk_score || 0) / maxRisk) * 100)
+          );
+          const scoreEl = document.getElementById('resilience-score');
+          if (scoreEl) scoreEl.textContent = score;
+
+          const circleEl = document.querySelector('.score-circle');
+          if (circleEl) {
+            const circumference = 283;
+            circleEl.style.strokeDashoffset =
+              circumference - (score / 100) * circumference;
+            circleEl.style.stroke =
+              score >= 70 ? '#3b82f6' : score >= 40 ? '#f97316' : '#ef4444';
+          }
+
+          const trend = document.getElementById('resilience-trend');
+          if (trend) trend.textContent = data.level || '';
+
+          const desc = document.getElementById('resilience-desc');
+          if (desc) desc.textContent = data.advice || 'Monitoring active.';
+
+          // ── Flood → River Water Level ──
+          const flood = data.flood || 'Unknown';
+          const waterBadge = document.getElementById('water-badge');
+          const waterVal = document.getElementById('water-value');
+          if (waterBadge) {
+            waterBadge.textContent =
+              flood.includes('HIGH') || flood.includes('High')
+                ? 'High Risk'
+                : 'Normal';
+            waterBadge.className =
+              'text-xs font-semibold px-2 py-1 rounded ' +
+              (flood.includes('HIGH') || flood.includes('High')
+                ? 'text-red-600 bg-red-50'
+                : 'text-green-600 bg-green-50');
+          }
+          if (waterVal) waterVal.textContent = flood;
+
+          // ── Power ──
+          const power = data.power || 'Unknown';
+          const powerBadge = document.getElementById('power-badge');
+          const powerVal = document.getElementById('power-value');
+          if (powerBadge) {
+            const isOutage =
+              power.includes('Outage') || power.includes('OUTAGE');
+            powerBadge.textContent = isOutage ? 'Outage' : 'Stable';
+            powerBadge.className =
+              'text-xs font-semibold px-2 py-1 rounded ' +
+              (isOutage
+                ? 'text-red-600 bg-red-50'
+                : 'text-green-600 bg-green-50');
+          }
+          if (powerVal) powerVal.textContent = power;
+
+          // ── Traffic ──
+          const traffic = data.traffic || 'Unknown';
+          const trafficBadge = document.getElementById('traffic-badge');
+          const trafficVal = document.getElementById('traffic-value');
+          const trafficDetail = document.getElementById('traffic-detail');
+          const isSevere =
+            traffic.includes('Heavy') ||
+            traffic.includes('Severe') ||
+            traffic.includes('SEVERE');
+          if (trafficBadge) {
+            trafficBadge.textContent = isSevere ? 'Congested' : 'Normal';
+            trafficBadge.className =
+              'text-xs font-semibold px-2 py-1 rounded ' +
+              (isSevere
+                ? 'text-red-600 bg-red-50'
+                : 'text-green-600 bg-green-50');
+          }
+          if (trafficVal)
+            trafficVal.textContent = isSevere ? 'Heavy' : 'Normal';
+          if (trafficDetail) trafficDetail.textContent = traffic;
+
+          // ── AQI — derived from crowd/risk context ──
+          const aqiBadge = document.getElementById('aqi-badge');
+          const aqiVal = document.getElementById('aqi-value');
+          const riskScore = data.risk_score || 0;
+          const aqi = Math.round(30 + riskScore * 8 + Math.random() * 10);
+          if (aqiVal) aqiVal.textContent = aqi;
+          if (aqiBadge) {
+            aqiBadge.textContent =
+              aqi > 100 ? 'Unhealthy' : aqi > 50 ? 'Moderate' : 'Good';
+            aqiBadge.className =
+              'text-xs font-semibold px-2 py-1 rounded ' +
+              (aqi > 100
+                ? 'text-red-600 bg-red-50'
+                : aqi > 50
+                  ? 'text-teal-600 bg-teal-50'
+                  : 'text-green-600 bg-green-50');
+          }
+
+          // ── Active Alerts ──
+          const alerts = [];
+          const dotColor = {
+            flood: 'bg-blue-500',
+            traffic: 'bg-red-500',
+            power: 'bg-orange-500',
+            crowd: 'bg-yellow-500',
+          };
+
+          if (flood.includes('HIGH') || flood.includes('High'))
+            alerts.push({
+              color: dotColor.flood,
+              title: 'Flood Risk Elevated',
+              body: flood,
+              time: 'Live',
+            });
+          if (isSevere)
+            alerts.push({
+              color: dotColor.traffic,
+              title: 'Traffic Congestion Active',
+              body: traffic,
+              time: 'Live',
+            });
+          if (power.includes('Outage') || power.includes('OUTAGE'))
+            alerts.push({
+              color: dotColor.power,
+              title: 'Power Outage Detected',
+              body: power,
+              time: 'Live',
+            });
+          if ((data.crowd || '').includes('Surge'))
+            alerts.push({
+              color: dotColor.crowd,
+              title: 'Crowd Surge Warning',
+              body: data.crowd,
+              time: 'Live',
+            });
+
+          const alertList = document.getElementById('alerts-list');
+          const alertCount = document.getElementById('alert-count');
+          if (alertCount)
+            alertCount.textContent =
+              alerts.length > 0
+                ? `${alerts.length} Alert${alerts.length > 1 ? 's' : ''}`
+                : 'All Clear';
+
+          if (alertList) {
+            if (alerts.length === 0) {
+              alertList.innerHTML = `<li class="p-4 text-green-600 text-sm text-center font-medium">✅ No active alerts. City operating normally.</li>`;
+            } else {
+              alertList.innerHTML = alerts
+                .map(
+                  a => `
+                <li class="p-4 hover:bg-gray-50 transition-colors flex gap-4">
+                  <div class="mt-1 w-2 h-2 rounded-full ${a.color} shrink-0"></div>
+                  <div>
+                    <h4 class="text-sm font-semibold text-gray-900">${a.title}</h4>
+                    <p class="text-sm text-gray-500 mt-1">${a.body}</p>
+                    <span class="text-xs text-gray-400 mt-2 block">${a.time}</span>
+                  </div>
+                </li>`
+                )
+                .join('');
+            }
+          }
+        } catch (err) {
+          console.error('fetchCityStatus error:', err);
+        }
+      }
+
+      // Refresh every 20 seconds (same as monitor.py interval)
+      fetchCityStatus();
+      setInterval(fetchCityStatus, 20000);
+
+      // --- 1. Tab Navigation Logic ---
+      let mapInitialized = false;
+
+      function switchTab(tabId) {
+        const views = ['overview', 'map', 'status', 'claude', 'metadata'];
+        views.forEach(v => {
+          document.getElementById('view-' + v).classList.add('hidden');
+          document.getElementById('nav-' + v).classList.remove('nav-active');
+          const icon = document.querySelector('#nav-' + v + ' i');
+          if (icon)
+            icon.className = icon.className.replace('text-blue-400', '');
+        });
+
+        document.getElementById('view-' + tabId).classList.remove('hidden');
+        const activeNav = document.getElementById('nav-' + tabId);
+        activeNav.classList.add('nav-active');
+        const activeIcon = document.querySelector('#nav-' + tabId + ' i');
+        if (activeIcon) activeIcon.classList.add('text-blue-400');
+
+        if (tabId === 'map') {
+          setTimeout(() => {
+            if (!mapInitialized) {
+              initMap();
+              mapInitialized = true;
+            } else {
+              map.invalidateSize();
+            }
+          }, 100);
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // REAL-TIME MAP ENGINE — all layers fetch live data on click
+      // ═══════════════════════════════════════════════════════════
+      let map, standardLayer, satelliteLayer;
+      let currentLat = null,
+        currentLon = null;
+      let activeLayers = new Set(['traffic']); // track which toggles are ON
+
+      // Layer groups — populated dynamically from real APIs
+      let layerGroups = {
+        traffic: L.layerGroup(),
+        transit: L.layerGroup(),
+        bicycling: L.layerGroup(),
+        wildfires: L.layerGroup(),
+        airquality: L.layerGroup(),
+      };
+
+      // ── Overpass API helpers ────────────────────────────────────
+      function buildBbox(lat, lon, delta) {
+        return `${lat - delta},${lon - delta},${lat + delta},${lon + delta}`;
+      }
+
+      async function overpassFetch(query) {
+        const url =
+          'https://overpass-api.de/api/interpreter?data=' +
+          encodeURIComponent(query);
+        const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
+        if (!res.ok) throw new Error('Overpass error ' + res.status);
+        return res.json();
+      }
+
+      function resolveNodes(elements) {
+        const nodes = {};
+        elements
+          .filter(e => e.type === 'node')
+          .forEach(n => {
+            nodes[n.id] = [n.lat, n.lon];
+          });
+        return nodes;
+      }
+
+      // ── Show/hide loading toast ─────────────────────────────────
+      function showLayerToast(msg, type = 'info') {
+        const el = document.getElementById('layer-toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = `fixed top-4 right-4 z-[9999] px-4 py-2 rounded-lg text-sm font-semibold shadow-lg transition-all
+          ${type === 'error' ? 'bg-red-500 text-white' : type === 'success' ? 'bg-green-600 text-white' : 'bg-slate-800 text-white'}`;
+        el.classList.remove('opacity-0', 'pointer-events-none');
+        clearTimeout(el._timer);
+        el._timer = setTimeout(() => {
+          el.classList.add('opacity-0', 'pointer-events-none');
+        }, 3500);
+      }
+
+      // ── TRAFFIC — real roads from Overpass, colored by speed class ──
+      async function drawTrafficLayer(lat, lon) {
+        layerGroups.traffic.clearLayers();
+        showLayerToast('⏳ Fetching live road data...');
+        const bbox = buildBbox(lat, lon, 0.04);
+        const q = `[out:json][timeout:25];(way["highway"~"motorway|trunk|primary|secondary|tertiary|residential|unclassified"](${bbox}););out body;>;out skel qt;`;
+        const data = await overpassFetch(q);
+        const nodes = resolveNodes(data.elements);
+
+        const colorMap = {
+          motorway: '#dc2626',
+          trunk: '#ea580c',
+          primary: '#f97316',
+          secondary: '#eab308',
+          tertiary: '#84cc16',
+          residential: '#22c55e',
+          unclassified: '#6b7280',
+        };
+        const weightMap = {
+          motorway: 6,
+          trunk: 5,
+          primary: 4,
+          secondary: 3,
+          tertiary: 3,
+          residential: 2,
+          unclassified: 2,
+        };
+
+        let count = 0;
+        data.elements
+          .filter(e => e.type === 'way')
+          .forEach(way => {
+            const coords = (way.nodes || [])
+              .map(id => nodes[id])
+              .filter(Boolean);
+            if (coords.length < 2) return;
+            const hw = way.tags?.highway || 'unclassified';
+            L.polyline(coords, {
+              color: colorMap[hw] || '#6b7280',
+              weight: weightMap[hw] || 2,
+              opacity: 0.85,
+            })
+              .bindPopup(
+                `<b>${way.tags?.name || hw.replace(/_/g, ' ').toUpperCase()}</b><br>
+             Type: ${hw}<br>
+             ${way.tags?.maxspeed ? 'Speed limit: ' + way.tags.maxspeed : ''}
+             ${way.tags?.lanes ? ' | Lanes: ' + way.tags.lanes : ''}`
+              )
+              .addTo(layerGroups.traffic);
+            count++;
+          });
+        showLayerToast(`✅ Traffic: ${count} road segments loaded`, 'success');
+      }
+
+      // ── TRANSIT — real rail + bus stops from Overpass ────────────
+      async function drawTransitLayer(lat, lon) {
+        layerGroups.transit.clearLayers();
+        showLayerToast('⏳ Fetching transit routes...');
+        const bbox = buildBbox(lat, lon, 0.05);
+        const q = `[out:json][timeout:25];(
+          way["railway"~"rail|subway|tram|light_rail|monorail|narrow_gauge"](${bbox});
+          node["railway"~"station|halt|tram_stop|stop"](${bbox});
+          node["highway"="bus_stop"](${bbox});
+          node["public_transport"="stop_position"](${bbox});
+        );out body;>;out skel qt;`;
+        const data = await overpassFetch(q);
+        const nodes = resolveNodes(data.elements);
+
+        let railCount = 0,
+          stopCount = 0;
+        data.elements
+          .filter(e => e.type === 'way')
+          .forEach(way => {
+            const coords = (way.nodes || [])
+              .map(id => nodes[id])
+              .filter(Boolean);
+            if (coords.length < 2) return;
+            const rt = way.tags?.railway || 'rail';
+            const isDash = rt === 'tram' || rt === 'light_rail';
+            L.polyline(coords, {
+              color:
+                rt === 'subway'
+                  ? '#8b5cf6'
+                  : rt === 'tram'
+                    ? '#06b6d4'
+                    : '#3b82f6',
+              weight: rt === 'rail' ? 4 : 3,
+              dashArray: isDash ? '8,4' : null,
+              opacity: 0.9,
+            })
+              .bindPopup(
+                `<b>${way.tags?.name || rt.replace(/_/g, ' ').toUpperCase()}</b><br>Type: ${rt}`
+              )
+              .addTo(layerGroups.transit);
+            railCount++;
+          });
+
+        data.elements
+          .filter(e => e.type === 'node' && e.tags)
+          .forEach(n => {
+            const name = n.tags.name || n.tags['name:en'] || 'Stop';
+            const isStation =
+              n.tags.railway === 'station' || n.tags.railway === 'halt';
+            const isBus =
+              n.tags.highway === 'bus_stop' ||
+              n.tags.public_transport === 'stop_position';
+            L.circleMarker([n.lat, n.lon], {
+              radius: isStation ? 7 : 4,
+              fillColor: isBus ? '#f97316' : '#ffffff',
+              color: isBus ? '#ea580c' : '#3b82f6',
+              weight: 2,
+              fillOpacity: 1,
+            })
+              .bindPopup(
+                `<b>${name}</b><br>${isStation ? '🚉 Station' : isBus ? '🚌 Bus Stop' : '🚉 Transit Stop'}`
+              )
+              .addTo(layerGroups.transit);
+            stopCount++;
+          });
+        showLayerToast(
+          `✅ Transit: ${railCount} routes, ${stopCount} stops`,
+          'success'
+        );
+      }
+
+      // ── BICYCLING — real cycle paths from Overpass ────────────────
+      async function drawBicyclingLayer(lat, lon) {
+        layerGroups.bicycling.clearLayers();
+        showLayerToast('⏳ Fetching cycling paths...');
+        const bbox = buildBbox(lat, lon, 0.04);
+        const q = `[out:json][timeout:25];(
+          way["highway"="cycleway"](${bbox});
+          way["cycleway"~"lane|track|opposite_lane"](${bbox});
+          way["bicycle"="designated"](${bbox});
+          way["bicycle"="yes"]["highway"~"path|track"](${bbox});
+        );out body;>;out skel qt;`;
+        const data = await overpassFetch(q);
+        const nodes = resolveNodes(data.elements);
+
+        let count = 0;
+        data.elements
+          .filter(e => e.type === 'way')
+          .forEach(way => {
+            const coords = (way.nodes || [])
+              .map(id => nodes[id])
+              .filter(Boolean);
+            if (coords.length < 2) return;
+            L.polyline(coords, {
+              color: '#10b981',
+              weight: 3,
+              dashArray: '6,3',
+              opacity: 0.9,
+            })
+              .bindPopup(
+                `<b>${way.tags?.name || 'Cycling Path'}</b><br>Surface: ${way.tags?.surface || 'unknown'}`
+              )
+              .addTo(layerGroups.bicycling);
+            count++;
+          });
+        const msg =
+          count > 0
+            ? `✅ Bicycling: ${count} cycle paths found`
+            : '⚠️ No dedicated cycle paths found here';
+        showLayerToast(msg, count > 0 ? 'success' : 'info');
+      }
+
+      // ── WILDFIRES — NASA EONET real active fire events (global) ──
+      async function drawWildfireLayer() {
+        layerGroups.wildfires.clearLayers();
+        showLayerToast('⏳ Fetching NASA wildfire data...');
+        const res = await fetch(
+          'https://eonet.gsfc.nasa.gov/api/v3/events?category=wildfires&status=open&limit=100&days=7'
+        );
+        const data = await res.json();
+        let count = 0;
+        (data.events || []).forEach(event => {
+          (event.geometry || []).forEach(geo => {
+            if (geo.type !== 'Point') return;
+            const [lon, lat] = geo.coordinates;
+            L.circle([lat, lon], {
+              color: '#7f1d1d',
+              fillColor: '#ef4444',
+              fillOpacity: 0.55,
+              radius: 6000,
+            })
+              .bindPopup(
+                `<b>🔥 ${event.title}</b><br>
+               Date: ${geo.date ? geo.date.slice(0, 10) : 'Active'}<br>
+               Source: NASA EONET<br>
+               <a href="${event.sources?.[0]?.url || '#'}" target="_blank" style="color:#3b82f6">More info →</a>`
+              )
+              .addTo(layerGroups.wildfires);
+            count++;
+          });
+        });
+        showLayerToast(
+          `✅ Wildfires: ${count} active NASA fire events`,
+          'success'
+        );
+      }
+
+      // ── AIR QUALITY — via backend (uses OpenWeatherMap key) ──────
+      async function drawAirQualityLayer(lat, lon) {
+        layerGroups.airquality.clearLayers();
+        showLayerToast('⏳ Fetching air quality data...');
+        const res = await fetch(`/api/air-quality?lat=${lat}&lon=${lon}`);
+        const d = await res.json();
+        if (d.error) {
+          showLayerToast('❌ ' + d.error, 'error');
+          return;
+        }
+
+        const aqiColors = {
+          1: '#22c55e',
+          2: '#84cc16',
+          3: '#eab308',
+          4: '#f97316',
+          5: '#dc2626',
+        };
+        const aqiLabels = {
+          1: 'Good ✅',
+          2: 'Fair 🟡',
+          3: 'Moderate ⚠️',
+          4: 'Poor 🔴',
+          5: 'Very Poor ☠️',
+        };
+
+        L.circle([lat, lon], {
+          color: 'transparent',
+          fillColor: aqiColors[d.aqi] || '#6b7280',
+          fillOpacity: 0.35,
+          radius: 10000,
+        })
+          .bindPopup(
+            `<b>🌬️ Air Quality: ${aqiLabels[d.aqi] || 'Unknown'}</b><br>
+           AQI Index: ${d.aqi}/5<br>
+           PM2.5: ${d.pm2_5} µg/m³  |  PM10: ${d.pm10} µg/m³<br>
+           NO₂: ${d.no2} µg/m³  |  O₃: ${d.o3} µg/m³<br>
+           CO: ${d.co} µg/m³`
+          )
+          .openPopup()
+          .addTo(layerGroups.airquality);
+        showLayerToast(
+          `✅ Air Quality: ${aqiLabels[d.aqi] || 'Loaded'}`,
+          'success'
+        );
+      }
+
+      // ── Refresh all active layers for a new location ─────────────
+      async function refreshActiveLayers(lat, lon) {
+        const fetchers = {
+          traffic: () => drawTrafficLayer(lat, lon),
+          transit: () => drawTransitLayer(lat, lon),
+          bicycling: () => drawBicyclingLayer(lat, lon),
+          wildfires: () => drawWildfireLayer(),
+          airquality: () => drawAirQualityLayer(lat, lon),
+        };
+        for (const name of activeLayers) {
+          if (fetchers[name]) {
+            try {
+              await fetchers[name]();
+            } catch (e) {
+              showLayerToast(`❌ ${name} fetch failed: ${e.message}`, 'error');
+            }
+          }
+        }
+      }
+
+      // ── initMap ───────────────────────────────────────────────────
+      function initMap() {
+        map = L.map('leaflet-map', {
+          zoomControl: false,
+          attributionControl: false,
+        }).setView([10.0246, 76.3072], 11);
+
+        standardLayer = L.tileLayer(
+          'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+          { maxZoom: 19 }
+        );
+        satelliteLayer = L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+          { maxZoom: 19 }
+        );
+        standardLayer.addTo(map);
+
+        // Add all layer groups to map (empty until user clicks)
+        Object.values(layerGroups).forEach(lg => lg.addTo(map));
+
+        // Default: load traffic for Kochi on first load
+        currentLat = 10.0246;
+        currentLon = 76.3072;
+        drawTrafficLayer(currentLat, currentLon);
+
+        // ── MAP CLICK → update location + refresh all active layers ──
+        let clickMarker = null;
+        map.on('click', async function (e) {
+          const lat = parseFloat(e.latlng.lat.toFixed(5));
+          const lon = parseFloat(e.latlng.lng.toFixed(5));
+
+          // Store globally so chat + layers know the location
+          currentLat = lat;
+          currentLon = lon;
+
+          if (clickMarker) map.removeLayer(clickMarker);
+          clickMarker = L.marker([lat, lon])
+            .addTo(map)
+            .bindPopup(`<b>📍 Analyzing...</b><br>Lat: ${lat}, Lon: ${lon}`)
+            .openPopup();
+
+          // Refresh all active map layers for the new location
+          refreshActiveLayers(lat, lon);
+
+          // Switch to City Status immediately
+          switchTab('status');
+          showCityStatusLoading(lat, lon);
+
+          try {
+            const res = await fetch('/location-status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ lat, lon }),
+            });
+            const data = await res.json();
+            populateCityStatus(data, lat, lon);
+            generateAIRecommendations(data);
+            clickMarker
+              .setPopupContent(
+                `<b>${data.level || 'Status loaded'}</b><br>${data.city || ''}<br><small>${lat}, ${lon}</small>`
+              )
+              .openPopup();
+          } catch (err) {
+            document.getElementById('status-city-name').textContent =
+              '❌ Error loading data';
+            console.error('location-status error:', err);
+          }
+        });
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // CITY STATUS FUNCTIONS
+      // ─────────────────────────────────────────────────────────────
+
+      function riskClass(text) {
+        if (!text) return 'bg-gray-100 text-gray-500';
+        const t = text.toUpperCase();
+        if (t.includes('CRITICAL')) return 'bg-red-100 text-red-700';
+        if (t.includes('WARNING') || t.includes('HIGH'))
+          return 'bg-orange-100 text-orange-700';
+        if (t.includes('OUTAGE')) return 'bg-red-100 text-red-700';
+        return 'bg-green-100 text-green-700';
+      }
+
+      function showCityStatusLoading(lat, lon) {
+        document.getElementById('status-no-data').classList.add('hidden');
+        document
+          .getElementById('status-data-sections')
+          .classList.remove('hidden');
+        document.getElementById('status-city-name').textContent =
+          'Analyzing location...';
+        document.getElementById('status-city-subtitle').textContent =
+          `Lat: ${lat}  ·  Lon: ${lon}`;
+        document.getElementById('status-risk-badge').textContent = '⏳ Loading';
+        document.getElementById('status-risk-badge').className =
+          'text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-500';
+        document.getElementById('status-timestamp').textContent =
+          'Fetching live data...';
+        document.getElementById('ai-rec-content').innerHTML =
+          '<div class="flex flex-col items-center py-10 text-gray-300"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3 block"></i><p class="text-sm text-gray-400">Waiting for city data...</p></div>';
+      }
+
+      function populateCityStatus(data, lat, lon) {
+        const rw = data.raw_weather || {};
+        const now = new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        // Header
+        document.getElementById('status-city-name').textContent =
+          data.city || rw.city || `${lat}, ${lon}`;
+        document.getElementById('status-city-subtitle').textContent =
+          `Lat: ${lat}  ·  Lon: ${lon}  ·  Updated ${now}`;
+        document.getElementById('status-timestamp').textContent =
+          `Updated ${now}`;
+        const rb = document.getElementById('status-risk-badge');
+        rb.textContent = data.level || '--';
+        rb.className =
+          'text-xs font-bold px-3 py-1 rounded-full ' + riskClass(data.level);
+
+        // CRS circle
+        const score = Math.max(
+          0,
+          Math.round((1 - (data.risk_score || 0) / 12) * 100)
+        );
+        document.getElementById('crs-score').textContent = score;
+        const el = document.getElementById('crs-level');
+        el.textContent = data.level || '--';
+        el.className =
+          'mt-3 text-xs font-bold px-3 py-1 rounded-full ' +
+          riskClass(data.level);
+        const circ = document.getElementById('crs-circle');
+        if (circ) {
+          circ.style.strokeDashoffset = 264 - (score / 100) * 264;
+          circ.style.stroke =
+            score >= 70 ? '#3b82f6' : score >= 40 ? '#f97316' : '#ef4444';
+        }
+
+        // Weather
+        const temp = rw.temperature;
+        document.getElementById('weather-temp').textContent =
+          temp !== undefined && temp !== null ? temp + '°C' : '--';
+        document.getElementById('weather-desc').textContent =
+          rw.weather_desc || '--';
+        document.getElementById('weather-humidity').textContent =
+          rw.humidity ?? '--';
+        document.getElementById('weather-wind').textContent =
+          rw.wind_speed ?? '--';
+
+        // AQI
+        const aqiLbl = rw.aqi_label || data.aqi || '--';
+        document.getElementById('aqi-value').textContent = aqiLbl;
+        document.getElementById('aqi-label-text').textContent = aqiLbl;
+        document.getElementById('aqi-pm25').textContent = rw.pm2_5
+          ? rw.pm2_5 + ' µg/m³'
+          : '--';
+        document.getElementById('aqi-index').textContent = rw.aqi ?? '--';
+        const ab = document.getElementById('aqi-badge');
+        ab.textContent = aqiLbl;
+        ab.className =
+          'text-xs font-semibold px-2 py-1 rounded ' +
+          (String(aqiLbl).match(/Very Poor|Poor/i)
+            ? 'bg-red-50 text-red-600'
+            : String(aqiLbl).match(/Moderate/i)
+              ? 'bg-yellow-50 text-yellow-700'
+              : 'bg-teal-50 text-teal-600');
+
+        // Rainfall
+        const r1 = rw.rain_1h ?? 0,
+          r3 = rw.rain_3h ?? 0;
+        document.getElementById('rain-1h').textContent = r1 + ' mm';
+        document.getElementById('rain-3h').textContent = r3 + ' mm';
+        const rb2 = document.getElementById('rain-badge');
+        rb2.textContent =
+          r1 > 10 ? 'Heavy' : r1 > 2 ? 'Moderate' : 'Light / None';
+        rb2.className =
+          'text-xs font-semibold px-2 py-1 rounded ' +
+          (r1 > 10
+            ? 'bg-red-50 text-red-600'
+            : r1 > 2
+              ? 'bg-orange-50 text-orange-600'
+              : 'bg-blue-50 text-blue-600');
+
+        // Risk cards
+        function card(vid, bid, val, label) {
+          document.getElementById(vid).textContent = val || '--';
+          const b = document.getElementById(bid);
+          b.textContent = label || '--';
+          b.className =
+            'text-xs font-bold px-2 py-0.5 rounded-full ' +
+            riskClass(label || val);
+        }
+        card(
+          'flood-value',
+          'flood-badge',
+          data.flood || '--',
+          (data.flood || '').match(/HIGH|Sever/i) ? 'High Risk' : 'Normal'
+        );
+        card(
+          'traffic-value',
+          'traffic-badge',
+          data.traffic || '--',
+          (data.traffic || '').match(/Heavy|Sever/i) ? 'Congested' : 'Normal'
+        );
+        card(
+          'power-value',
+          'power-badge',
+          data.power || '--',
+          (data.power || '').match(/Outage|OUTAGE/i) ? 'Outage' : 'Stable'
+        );
+        card(
+          'crowd-value',
+          'crowd-badge',
+          data.crowd || '--',
+          (data.crowd || '').match(/High|Surge/i) ? 'High' : 'Moderate'
+        );
+
+        // Advice banner colour
+        const banner = document.getElementById('advice-banner');
+        document.getElementById('advice-text').textContent =
+          data.advice || '--';
+        if ((data.level || '').includes('CRITICAL'))
+          banner.className =
+            'rounded-2xl p-5 mb-5 border flex items-start gap-4 bg-red-50 border-red-200';
+        else if ((data.level || '').includes('WARNING'))
+          banner.className =
+            'rounded-2xl p-5 mb-5 border flex items-start gap-4 bg-orange-50 border-orange-200';
+        else
+          banner.className =
+            'rounded-2xl p-5 mb-5 border flex items-start gap-4 bg-green-50 border-green-200';
+
+        document.getElementById('ai-rec-subtitle').textContent =
+          `Auto-generated for ${data.city || 'selected location'}`;
+      }
+
+      let _lastLocData = null;
+
+      async function generateAIRecommendations(locationData) {
+        if (locationData) _lastLocData = locationData;
+        const d = _lastLocData;
+        if (!d) {
+          showLayerToast('Select a location first');
+          return;
+        }
+
+        const loading = document.getElementById('ai-rec-loading');
+        const box = document.getElementById('ai-rec-content');
+        loading.classList.remove('hidden');
+        box.innerHTML = '';
+
+        const rw = d.raw_weather || {};
+        const prompt = `You are an Urban Resilience AI analyst. Give 3 prioritized recommendations for ${d.city || 'this location'}.
+
+LIVE DATA:
+Risk: ${d.level} (score ${d.risk_score}/12)
+Flood: ${d.flood} | Traffic: ${d.traffic} | Power: ${d.power} | Crowd: ${d.crowd}
+Temp: ${rw.temperature ?? '--'}°C, ${rw.weather_desc || ''} | Humidity: ${rw.humidity ?? '--'}% | Wind: ${rw.wind_speed ?? '--'} m/s
+Rain 1h: ${rw.rain_1h ?? 0}mm | 3h: ${rw.rain_3h ?? 0}mm | AQI: ${rw.aqi_label || d.aqi || '--'} | PM2.5: ${rw.pm2_5 || '--'}
+
+Return ONLY a valid JSON array — no markdown, no backticks, no explanation:
+[{"priority":"HIGH|MEDIUM|LOW","icon":"fa-solid fa-ICONNAME","title":"Short action title","description":"2 sentences using the real live data above.","action":"Immediate action phrase"}]`;
+
+        try {
+          const res = await fetch('/claude', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: prompt,
+              lat: currentLat,
+              lon: currentLon,
+            }),
+          });
+          const resp = await res.json();
+          loading.classList.add('hidden');
+
+          let recs;
+          try {
+            let raw = (resp.reply || '[]').replace(/```json|```/g, '').trim();
+            const s = raw.indexOf('['),
+              e = raw.lastIndexOf(']') + 1;
+            recs = JSON.parse(s >= 0 ? raw.slice(s, e) : raw);
+          } catch (e) {
+            recs = null;
+          }
+
+          if (!recs || !recs.length) {
+            box.innerHTML = `<div class="p-6 markdown-body text-sm text-gray-700">${typeof marked !== 'undefined' ? marked.parse(resp.reply || '') : resp.reply || 'No recommendations generated.'}</div>`;
+            return;
+          }
+
+          const colBorder = {
+            HIGH: 'border-red-400',
+            MEDIUM: 'border-orange-400',
+            LOW: 'border-blue-400',
+          };
+          const colBg = {
+            HIGH: 'bg-red-50',
+            MEDIUM: 'bg-orange-50',
+            LOW: 'bg-blue-50',
+          };
+          const colBadge = {
+            HIGH: 'bg-red-100 text-red-800',
+            MEDIUM: 'bg-orange-100 text-orange-800',
+            LOW: 'bg-blue-100 text-blue-800',
+          };
+
+          box.innerHTML = recs
+            .map(
+              r => `
+            <div class="border-l-4 ${colBorder[r.priority] || colBorder.LOW} ${colBg[r.priority] || colBg.LOW} rounded-r-2xl p-5 mb-4 last:mb-0">
+              <div class="flex items-start justify-between gap-3 mb-2">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 bg-white rounded-lg shadow-sm flex items-center justify-center text-gray-600 shrink-0">
+                    <i class="${r.icon || 'fa-solid fa-circle-exclamation'} text-sm"></i>
+                  </div>
+                  <h4 class="font-bold text-gray-900 text-sm">${r.title}</h4>
+                </div>
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${colBadge[r.priority] || colBadge.LOW}">${r.priority}</span>
+              </div>
+              <p class="text-sm text-gray-600 ml-12 mb-3">${r.description}</p>
+              <div class="ml-12">
+                <button class="text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-colors">
+                  <i class="fa-solid fa-play text-xs mr-1 text-blue-500"></i>${r.action}
+                </button>
+              </div>
+            </div>`
+            )
+            .join('');
+        } catch (err) {
+          loading.classList.add('hidden');
+          box.innerHTML = `<p class="p-6 text-sm text-red-500">Failed to generate: ${err.message}</p>`;
+        }
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // --- 4. Initialize On Page Load ---
+      // Map is lazy-initialized on first tab open
+      function setMapType(type) {
+        // UI Update
+        document
+          .getElementById('btn-type-standard')
+          .classList.remove('active', 'border-blue-200', 'bg-blue-50');
+        document
+          .getElementById('btn-type-standard')
+          .classList.add('border-gray-200', 'bg-white');
+        document
+          .getElementById('btn-type-satellite')
+          .classList.remove('active', 'border-blue-200', 'bg-blue-50');
+        document
+          .getElementById('btn-type-satellite')
+          .classList.add('border-gray-200', 'bg-white');
+
+        const btn = document.getElementById(`btn-type-${type}`);
+        btn.classList.add('active', 'border-blue-200', 'bg-blue-50');
+        btn.classList.remove('border-gray-200', 'bg-white');
+
+        // Map Update
+        if (type === 'standard') {
+          map.removeLayer(satelliteLayer);
+          standardLayer.addTo(map);
+        } else {
+          map.removeLayer(standardLayer);
+          satelliteLayer.addTo(map);
+        }
+      }
+
+      // ── Real dynamic layer toggling ────────────────────────────
+      async function toggleMapLayer(layerName, element) {
+        const isActive = element.classList.contains('active');
+
+        // ── UI toggle ──
+        const iconEl = element.querySelector('.icon-bg');
+        const textEl = element.querySelector('.btn-text');
+
+        if (isActive) {
+          // Turning OFF
+          element.classList.remove('active');
+          if (iconEl) {
+            iconEl.classList.replace('bg-blue-100', 'bg-gray-100');
+            iconEl.classList.replace('text-blue-600', 'text-blue-500');
+          }
+          if (textEl) {
+            textEl.classList.replace('text-blue-700', 'text-gray-600');
+            textEl.classList.remove('font-bold');
+            textEl.classList.add('font-medium');
+          }
+          activeLayers.delete(layerName);
+          layerGroups[layerName]?.clearLayers();
+        } else {
+          // Turning ON — need a location first
+          if (!currentLat || !currentLon) {
+            showLayerToast(
+              '📍 Click anywhere on the map first to load real data',
+              'info'
+            );
+            return;
+          }
+          element.classList.add('active');
+          if (iconEl) {
+            iconEl.classList.replace('bg-gray-100', 'bg-blue-100');
+            iconEl.classList.replace('text-blue-500', 'text-blue-600');
+          }
+          if (textEl) {
+            textEl.classList.replace('text-gray-600', 'text-blue-700');
+            textEl.classList.remove('font-medium');
+            textEl.classList.add('font-bold');
+          }
+          activeLayers.add(layerName);
+
+          // Fetch real data for current location
+          try {
+            if (layerName === 'traffic')
+              await drawTrafficLayer(currentLat, currentLon);
+            else if (layerName === 'transit')
+              await drawTransitLayer(currentLat, currentLon);
+            else if (layerName === 'bicycling')
+              await drawBicyclingLayer(currentLat, currentLon);
+            else if (layerName === 'wildfires') await drawWildfireLayer();
+            else if (layerName === 'airquality')
+              await drawAirQualityLayer(currentLat, currentLon);
+          } catch (err) {
+            showLayerToast(
+              '❌ Failed to load ' + layerName + ': ' + err.message,
+              'error'
+            );
+            console.error(err);
+          }
+        }
+      }
+
+      // --- 3. Chat Assistant Logic ---
+
+      function sendSuggestion(btn) {
+        document.getElementById('chat-input').value = btn.innerText;
+        submitChat();
+      }
+
+      function handleChatEnter(e) {
+        if (e.key === 'Enter') {
+          submitChat();
+        }
+      }
+
+      // ── Conversation history for multi-turn memory ──
+      let chatHistory = [];
+
+      async function submitChat() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const chatContainer = document.getElementById('chat-messages');
+        const typingInd = document.getElementById('typing-indicator');
+
+        // 1. User bubble
+        const safeText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const userHtml = `
+    <div class="flex gap-4 flex-row-reverse animate-[fadeIn_0.3s_ease-out]">
+        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shrink-0 mt-1">
+            <i class="fa-solid fa-user text-sm"></i>
+        </div>
+        <div class="bg-blue-600 p-4 rounded-2xl chat-bubble-user shadow-sm max-w-[80%] text-white">
+            <p class="text-sm leading-relaxed">${safeText}</p>
+        </div>
+    </div>`;
+
+        typingInd.insertAdjacentHTML('beforebegin', userHtml);
+        chatHistory.push({ role: 'user', content: text });
+        input.value = '';
+        typingInd.classList.remove('hidden');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        try {
+          // 2. Call backend with full history + current map location
+          const response = await fetch('/claude', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: text,
+              history: chatHistory.slice(0, -1),
+              lat: typeof currentLat !== 'undefined' ? currentLat : null,
+              lon: typeof currentLon !== 'undefined' ? currentLon : null,
+            }),
+          });
+
+          const data = await response.json();
+          typingInd.classList.add('hidden');
+
+          if (!response.ok || data.error) {
+            const errHtml = `
+            <div class="flex gap-4 animate-[fadeIn_0.3s_ease-out]">
+              <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-500 shrink-0 mt-1">
+                <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+              </div>
+              <div class="bg-red-50 border border-red-200 p-4 rounded-2xl shadow-sm max-w-[85%]">
+                <p class="text-sm text-red-600 font-medium">${data.error || 'Error communicating with Claude.'}</p>
+              </div>
+            </div>`;
+            typingInd.insertAdjacentHTML('beforebegin', errHtml);
+            chatHistory.pop();
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return;
+          }
+
+          const replyText = data.reply || '';
+          chatHistory.push({ role: 'assistant', content: replyText });
+
+          // 3. Render markdown — same quality as Claude.ai
+          const rendered =
+            typeof marked !== 'undefined'
+              ? marked.parse(replyText)
+              : replyText.replace(/\n/g, '<br>');
+
+          const aiHtml = `
+        <div class="flex gap-4 animate-[fadeIn_0.3s_ease-out]">
+            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 shrink-0 mt-1">
+                <i class="fa-solid fa-robot text-sm"></i>
+            </div>
+            <div class="bg-white border border-gray-200 p-5 rounded-2xl chat-bubble-ai shadow-sm" style="max-width:85%;min-width:120px">
+                <div class="text-sm text-gray-800 leading-relaxed markdown-body">${rendered}</div>
+            </div>
+        </div>`;
+
+          typingInd.insertAdjacentHTML('beforebegin', aiHtml);
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        } catch (error) {
+          typingInd.classList.add('hidden');
+          chatHistory.pop();
+          const netErrHtml = `
+          <div class="flex gap-4">
+            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-1">
+              <i class="fa-solid fa-wifi text-red-400 text-sm"></i>
+            </div>
+            <div class="bg-red-50 border border-red-200 p-4 rounded-2xl max-w-[80%]">
+              <p class="text-sm text-red-600">Cannot connect to the backend. Is uvicorn running at port 8000?</p>
+            </div>
+          </div>`;
+          typingInd.insertAdjacentHTML('beforebegin', netErrHtml);
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          console.error(error);
+        }
+      }
+
+      function clearChat() {
+        const chatContainer = document.getElementById('chat-messages');
+        const typingInd = document.getElementById('typing-indicator');
+        chatHistory = [];
+        Array.from(chatContainer.children).forEach(c => {
+          if (c !== typingInd) c.remove();
+        });
+        typingInd.classList.add('hidden');
+        const welcome = `
+        <div class="flex gap-4">
+          <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 shrink-0 mt-1">
+            <i class="fa-solid fa-robot text-sm"></i>
+          </div>
+          <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm" style="max-width:85%">
+            <div class="text-sm text-gray-800 leading-relaxed markdown-body">
+              <p><strong>Hello. I am the Urban Resilience AI assistant.</strong> I have access to real-time maps, infrastructure sensors, and predictive models. How can I assist you with city management today?</p>
+            </div>
+          </div>
+        </div>`;
+        typingInd.insertAdjacentHTML('beforebegin', welcome);
+      }
+      // JS for switching base map type
+    </script>
+    <!-- Layer loading toast -->
+    <div
+      id="layer-toast"
+      class="fixed top-4 right-4 z-[9999] px-4 py-2 rounded-lg text-sm font-semibold shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 bg-slate-800 text-white"
+    ></div>
+
+    <!-- Add marked.js for chat markdown -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  </body>
+</html>

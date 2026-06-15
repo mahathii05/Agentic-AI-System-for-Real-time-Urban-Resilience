@@ -1,0 +1,78 @@
+body {
+  margin: 0;
+  font-family: Segoe UI;
+  background: #0b1220;
+  color: white;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #121b33;
+  padding: 12px 20px;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.nav-links button {
+  margin-left: 10px;
+  padding: 8px 14px;
+  border: none;
+  background: #1f2b4d;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.nav-links button:hover {
+  background: #324a8a;
+}
+
+/* PAGES */
+.page {
+  display: none;
+  padding: 20px;
+}
+
+.page.active {
+  display: block;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* CARDS */
+.card {
+  background: #141c33;
+  padding: 15px;
+  border-radius: 14px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+#map {
+  height: 450px;
+  border-radius: 12px;
+}
+
+#chatbox {
+  height: 250px;
+  overflow-y: auto;
+  background: #0e1529;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+#chatinput {
+  width: 70%;
+  padding: 8px;
+}

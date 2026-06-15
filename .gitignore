@@ -1,0 +1,36 @@
+# Python cache
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+urban_dashboard/dashboard_env/
+
+# Environment variables / secrets
+.env
+
+# VS Code settings
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs and temporary files
+*.log
+latest_alert.txt
+
+# Python build files
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Test cache
+.pytest_cache/
+
+# Coverage
+.coverage
+htmlcov/
