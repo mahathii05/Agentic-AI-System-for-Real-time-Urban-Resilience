@@ -2,81 +2,117 @@
 
 ## Overview
 
-The Agentic AI System for Real-Time Urban Resilience is an AI-driven platform designed to enhance urban resilience through real-time monitoring, predictive analytics, and intelligent decision-making. By integrating Agentic AI with urban data streams, the system helps identify risks, analyze evolving situations, and support timely responses to urban challenges.
+The **Agentic AI System for Real-Time Urban Resilience** is an intelligent decision-support platform designed to help cities monitor, analyze, and respond to urban disruptions in real time. The system integrates multiple data sources, validates information reliability, and employs specialized AI agents to generate actionable insights for citizens and city authorities.
 
-## Problem Statement
-
-Rapid urbanization has increased the complexity of managing cities. Challenges such as traffic congestion, environmental hazards, infrastructure failures, and emergency situations require systems that can not only monitor events but also reason and act on them intelligently.
-
-This project aims to address these challenges through an autonomous AI-driven framework capable of analyzing urban conditions and generating actionable insights in real time.
-
-## Objectives
-
-- Monitor urban conditions using real-time data.
-- Detect and analyze potential risks.
-- Generate intelligent recommendations for decision-making.
-- Improve urban preparedness and resilience.
-- Support sustainable and data-driven city management.
-
-## Key Features
-
-- Real-time urban data analysis
-- Agent-based reasoning and decision support
-- Risk prediction and assessment
-- Automated alert generation
-- Interactive visualization dashboard
-- Scalable and modular architecture
-
-## System Workflow
-
-1. Data Acquisition from urban data sources.
-2. Data Processing and feature extraction.
-3. Agentic AI-based analysis and reasoning.
-4. Risk assessment and prediction.
-5. Recommendation generation.
-6. Dashboard visualization and alerts.
-
-## Technologies Used
-
-### Programming & Backend
-- Python
-- FastAPI
-
-### Data Science & AI
-- Pandas
-- NumPy
-- Scikit-learn
-
-### Frontend
-- HTML
-- CSS
-- JavaScript
-
-### Database
-- SQLite / PostgreSQL
-
-## Applications
-
-- Smart City Management
-- Disaster Preparedness
-- Traffic Monitoring
-- Environmental Monitoring
-- Infrastructure Management
-- Emergency Response Systems
-
-## Future Scope
-
-- Integration with IoT sensors
-- Multi-agent collaboration systems
-- Digital Twin integration
-- Advanced geospatial analytics
-- LLM-powered urban decision support
-- Real-time disaster prediction
-
-## Impact
-
-By combining Agentic AI with real-time urban analytics, this system contributes to creating smarter, safer, and more resilient cities capable of responding proactively to emerging challenges.
+By combining real-time data processing, multi-agent reasoning, and Large Language Models (LLMs), the platform provides a unified view of urban conditions and enables proactive decision-making during critical situations such as flooding, traffic congestion, power outages, and large public events.
 
 ---
 
-**Building resilient cities through intelligent autonomous systems.**
+## Key Features
+
+* Real-time urban risk monitoring
+* Multi-agent AI architecture
+* Flood Risk Analysis
+* Traffic Congestion Prediction
+* Power Grid Stress Assessment
+* Event Impact Analysis
+* City Resilience Score (CRS) generation
+* AI-based Trust & Validation Layer
+* Interactive Geospatial Risk Dashboard
+* Natural Language Urban Intelligence Assistant
+* Real-time alerts and mitigation recommendations
+* Scalable and lightweight architecture
+
+---
+
+## System Architecture
+
+The system follows a four-layer architecture:
+
+### 1. Data Ingestion Layer
+
+Collects and processes real-time urban data from multiple sources.
+
+### 2. Trust & Validation Layer
+
+Validates incoming data, removes duplicates, filters noise, and assigns confidence scores to ensure reliability.
+
+### 3. AI Intelligence Layer
+
+Consists of four specialized AI agents:
+
+* **Flood Risk Agent**
+* **Traffic Congestion Agent**
+* **Power Grid Stress Agent**
+* **Event Impact Agent**
+
+A central orchestrator combines the outputs of these agents to generate a unified **City Resilience Score (CRS)** and contextual recommendations.
+
+### 4. Delivery & Interaction Layer
+
+Provides insights through:
+
+* Interactive City Dashboard
+* Live Risk Map
+* Natural Language Chat Assistant
+* AI-generated Mitigation Recommendation Cards
+* Real-time Alert System
+
+---
+
+## Technologies Used
+
+### Backend
+
+* Python 3.10+
+* FastAPI
+* Uvicorn
+
+### AI & Intelligence
+
+* Anthropic Claude API (Claude Sonnet 4.6)
+* Multi-Agent Architecture
+* Predictive Analytics
+* Trust Validation Framework
+
+### Data Sources
+
+* OpenWeatherMap API
+* Overpass API
+* OpenStreetMap
+
+### Frontend
+
+* HTML5
+* Tailwind CSS
+* JavaScript
+* Leaflet.js
+
+---
+
+## Applications
+
+* Smart City Management
+* Disaster Preparedness
+* Urban Risk Assessment
+* Traffic Monitoring
+* Infrastructure Monitoring
+* Emergency Response Support
+* Public Safety Enhancement
+
+---
+
+## Future Enhancements
+
+* Additional domain-specific AI agents
+* Edge AI deployment for offline resilience
+* Knowledge Graph integration
+* Multilingual voice assistants
+* Cross-city transfer learning
+* Large-scale smart city deployments
+
+---
+
+## Authors
+
+Developed as a B.Tech Artificial Intelligence & Data Science project focused on building intelligent, scalable, and resilient urban management systems using Agentic AI.
